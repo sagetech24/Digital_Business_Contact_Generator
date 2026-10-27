@@ -1,3 +1,8 @@
+/*
+ * Legacy shared stylesheet (fallback only).
+ * Prefer per-template files: css/single-person_details_{ORG}.css
+ */
+
 /* Default background for person_details post type pages */
 .single-person_details {
   background: none;

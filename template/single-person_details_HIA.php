@@ -10,7 +10,9 @@
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <?php
-    $css_url = plugin_dir_url(__FILE__) . '../css/style.css';
+    $css_url = class_exists('BSS_Business_Contact_Card_Template')
+        ? BSS_Business_Contact_Card_Template::get_stylesheet_url_for_template(__FILE__)
+        : plugin_dir_url(__FILE__) . '../css/single-person_details_HIA.css';
     echo '<link rel="stylesheet" href="' . esc_url($css_url) . '" type="text/css" media="all">';
     ?>
     <link href="https://fonts.googleapis.com/css2?family=Allura&family=Dancing+Script&family=Great+Vibes&family=Pacifico&family=Satisfy&display=swap" rel="stylesheet">

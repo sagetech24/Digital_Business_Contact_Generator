@@ -1,0 +1,245 @@
+/**
+ * IBEX card styles — scoped to .ibex-card* only.
+ * Does not share rules with BSS / HIA / Hope Village / SOL templates.
+ */
+
+:root {
+  --ibex-green-dark: #1f6b3a;
+  --ibex-green-mid: #3f9a4a;
+  --ibex-green-lime: #b7db57;
+  --ibex-orange: #c4783a;
+  --ibex-orange-bright: #e0703a;
+  --ibex-text: #2f3430;
+  --ibex-text-muted: #4a524c;
+  --ibex-border: #2a2a2a;
+  --ibex-card-max: 420px;
+}
+
+html,
+body.ibex-card-page {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: #f3f4f2;
+  color: var(--ibex-text);
+  font-family: "Source Sans 3", "Segoe UI", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.ibex-card-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 1.5rem 1rem 2.5rem;
+  box-sizing: border-box;
+}
+
+/* Neutralize theme chrome that can leak onto this full-page template */
+body.ibex-card-page .site-header,
+body.ibex-card-page .site-footer,
+body.ibex-card-page #wpadminbar + * {
+  /* keep admin bar usable; no forced hide */
+}
+
+.ibex-card {
+  position: relative;
+  width: 100%;
+  max-width: var(--ibex-card-max);
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(20, 40, 20, 0.12);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-height: 640px;
+}
+
+.ibex-card__wave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 168px;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ibex-card__wave-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.ibex-card__photo {
+  position: relative;
+  z-index: 2;
+  margin-top: 72px;
+  width: 168px;
+  height: 210px;
+  background: #ffffff;
+  border: 2px solid var(--ibex-border);
+  border-radius: 14px;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.ibex-card__photo img,
+.ibex-card__photo .wp-block-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border: 0 !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+}
+
+.ibex-card__body {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 1.35rem 1.5rem 0.5rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.ibex-card__name {
+  margin: 0 0 0.85rem;
+  padding: 0 0.5rem;
+  font-size: clamp(1.65rem, 5vw, 2rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: var(--ibex-text);
+}
+
+.ibex-card__divider {
+  position: relative;
+  width: min(78%, 260px);
+  height: 14px;
+  margin: 0 0 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ibex-card__divider::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: var(--ibex-orange);
+  transform: translateY(-50%);
+}
+
+.ibex-card__divider span {
+  position: relative;
+  z-index: 1;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ibex-orange);
+  flex-shrink: 0;
+}
+
+.ibex-card__role {
+  margin: 0 0 0.35rem;
+  padding: 0 1rem;
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--ibex-text-muted);
+}
+
+.ibex-card__role p {
+  margin: 0;
+  padding: 0;
+  border: 0 !important;
+}
+
+.ibex-card__meta {
+  margin: 0.15rem 0 1.35rem;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--ibex-text-muted);
+  letter-spacing: 0.02em;
+}
+
+.ibex-card__qr {
+  margin: 0.25rem 0 1.5rem;
+  padding: 10px;
+  border: 2px solid var(--ibex-orange);
+  border-radius: 14px;
+  background: #fff;
+  line-height: 0;
+}
+
+.ibex-card__qr-link {
+  display: inline-block;
+  line-height: 0;
+  text-decoration: none;
+}
+
+.ibex-card__qr img,
+.ibex-card__qr canvas,
+.ibex-card__qr table {
+  display: block;
+  margin: 0 auto;
+  max-width: 148px;
+  height: auto;
+}
+
+.ibex-card__qr table {
+  border-collapse: collapse;
+}
+
+.ibex-card__brand {
+  width: 100%;
+  padding: 0.5rem 1.25rem 1.6rem;
+  box-sizing: border-box;
+  margin-top: auto;
+}
+
+.ibex-card__logo {
+  display: block;
+  width: min(220px, 72%);
+  height: auto;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+@media (max-width: 480px) {
+  body.ibex-card-page {
+    padding: 0.75rem 0.5rem 1.5rem;
+  }
+
+  .ibex-card {
+    min-height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+    max-width: 100%;
+  }
+
+  .ibex-card__photo {
+    width: 150px;
+    height: 188px;
+    margin-top: 64px;
+  }
+
+  .ibex-card__wave {
+    height: 150px;
+  }
+}

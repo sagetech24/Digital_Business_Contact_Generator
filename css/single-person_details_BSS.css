@@ -1,0 +1,580 @@
+/* Default background for person_details post type pages */
+.single-person_details {
+  background: none;
+  min-height: 100%;
+  color: #fff; /* optional: text color for contrast */
+  padding: 0;
+  margin: 0;
+}
+
+.single-person_inner {
+  position: relative;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;          
+  max-width: 900px; 
+  min-height: 100%;
+  background: url('http://localhost:8000/wp-content/uploads/2025/05/bible-house-singapore-l090913-7.jpg') no-repeat center center;
+  background-size: 1600px auto;              /* Zoom in */
+  background-attachment: fixed;        /* Keep fixed in viewport */
+  z-index: 0;
+  pointer-events: none; /* let clicks go through */
+  padding: 0;
+  margin: 0;
+  font-size: 16px;
+}
+
+.single-person_inner::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(225, 255, 241, 0.8); /* black overlay, 40% opacity */
+  z-index: 1;
+}
+
+@media (min-width: 1000px) {
+  .single-person_inner {
+    background-size: 1400px auto;
+  }
+}
+
+@media (max-width: 750px) {
+  .single-person_inner {
+    background-size: 700px auto;
+  }
+}
+
+/* Make sure inner content sits above overlay */
+.single-person_inner > * {
+  position: relative;
+  z-index: 2;
+}
+
+.full-screen-wrapper {
+  height: 100vh; /* Full viewport height */
+  display: flex;
+  flex-direction: column; /* Top to bottom */
+  flex: 1;
+}
+
+.top-box {
+  width: 100%;
+  max-width: 700px;
+  min-width: 200px;
+  height: 100px;
+  background: linear-gradient(135deg, #cdffd8, #96ffe5);
+  padding: 1rem;
+  color: white;
+  font-weight: bold;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-left: 1rem; /* left-align with spacing */
+  border-radius: 0 0 40px 40px;
+  box-sizing: border-box;
+  padding-left: 1.5rem;    /* add space on left */
+  padding-right: 1.5rem;   /* add space on right */
+}
+
+.logo {
+  width: 100px;
+  height: 100%;
+  margin: 0; /* reset the negative margin */
+  background-image: url('https://www.biblesociety.sg/wp-content/uploads/2015/05/BSS-Logo-2023-NEW-2B-WHITE-3.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin: 0;
+  display: block;
+}
+
+@media (max-width: 480px) {
+  .top-box {
+    width: 300px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    height: 100px; /* optional: shrink height */
+    font-size: 0.9rem; /* optional: smaller text */
+  }
+  .logo {
+    margin-top: 0px;
+  }
+}
+
+@media (max-height: 750px) {
+  .top-box {
+    width: 300px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    height: 100px; /* optional: shrink height */
+    font-size: 0.9rem; /* optional: smaller text */
+  }
+  .logo {
+    margin-top: 0;
+  }
+}
+
+@media (min-width: 1000px) {
+  .top-box {
+    width: 300px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    height: 150px; /* optional: shrink height */
+    font-size: 0.9rem; /* optional: smaller text */
+  }
+  .logo {
+    margin-top: 0;
+  }
+}
+
+.profile-image {
+  margin-top: -60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  height: auto;
+  position: relative;
+  z-index: 3;
+}
+
+.profile-image img {
+  border-color: #000000 !important;
+  border-width: 5px !important;
+}
+
+@media (max-height: 750px) {
+  .profile-image {
+    margin-top: -50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    height: auto;
+    position: relative;
+    z-index: 3;
+  }
+  .profile-image img {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+@media (min-width: 1000px) {
+  .profile-image {
+    margin-top: -70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    height: auto;
+    position: relative;
+    z-index: 3;
+  }
+  .profile-image img {
+    width: 180px;
+    height: 180px;
+  }
+}
+
+
+.bottom-box {
+  margin-top: -60px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  max-width: 700px;
+  min-width: 200px;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #94b9ff, #cdffd8);
+  padding: 16px;
+  color: black;
+  font-weight: bold;
+  justify-content: center; /* center horizontal */
+  align-items: center;     /* center vertical if needed */
+  flex-direction: column;  /* stack items vertically */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+  border-radius: 40px 40px 40px 40px;
+  box-sizing: border-box;
+  padding-top: 80px;
+  padding-left: 24px;    /* add space on left */
+  padding-right: 24px;   /* add space on right */
+  overflow-wrap: break-word;
+  gap: 8px;
+}
+
+.contact-content {
+  max-width: 80vw;
+  max-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: stretch; /* or 'flex-start' */
+  text-align: left;     /* Optional: use 'left' for natural flow */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.Name-fonts {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  font-size: 2em;
+  width: 100%;
+  max-width: 600px;
+  margin-top: -12px;
+  margin-bottom: 0;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word; /* <- add this too */
+  white-space: normal;    /* <- ensure wrapping */
+}
+
+.short-spacer {
+  width: 100%;
+  max-width: 300px;
+  height: 4px;
+  border: none;
+  background-color: #22ffa3;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  transition: width 0.3s ease-in-out;
+}
+
+.Designation-fonts {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  font-size: 1em;
+  width: 100%;
+  max-width: 600px;
+  height: 100%;
+  max-height: 10vh;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word; /* <- add this too */
+  white-space: normal;    /* <- ensure wrapping */
+}
+
+.Designation-fonts p {
+  margin: 0;
+}
+
+.Quote-box {
+  background: #f0f0f0;
+  box-shadow: 10px 10px 0px #c1c1c1;
+  border-radius: 10px 10px 10px 10px;
+  box-sizing: border-box;
+  padding-top: 13px;
+  padding-bottom: 13px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.Quote-fonts {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1em;
+  width: 100%;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  word-wrap: break-word;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-break: break-word; /* <- add this too */
+  white-space: normal;    /* <- ensure wrapping */
+}
+
+.Quote-fonts p {
+  margin: 0;
+}
+
+@media (max-width: 480px) {
+  .bottom-box {
+    width: 300px;
+    height: fit-content;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (max-height: 750px) {
+  .bottom-box {
+    width: 300px;
+    height: fit-content;
+    padding-left: 16px;
+    padding-right: 16px;
+    font-size: 14px; /* optional: smaller text */
+  }
+
+  .contact-content {
+    gap: 8px;
+  }
+}
+
+@media (min-width: 1000px) {
+  .bottom-box {
+    gap: 16px;
+  }
+  .contact-content {
+    gap: 16px;
+  }
+}
+
+.QR-Code {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  height: auto;
+  position: relative;
+  z-index: 1;
+}
+
+.QR-Code img {
+  max-width: 17vw;   /* Responsive width relative to viewport */
+  max-height: 17vh;  /* Prevent it from being too tall */
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.mobile-qr-link {
+  display: block; 
+  margin-top: 1rem;
+  pointer-events: none; /* Disable click by default (desktop) */
+  cursor: default; 
+}
+
+@media (max-width: 480px) {
+  .QR-Code img {
+    margin-top: 1vh;
+    max-width: 40vw;   /* Responsive width relative to viewport */
+    max-height: 40vh;  /* Prevent it from being too tall */
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .mobile-qr-link {
+    pointer-events: auto; /* Enable click on mobile */
+    cursor: pointer;
+  }
+}
+
+@media (max-height: 750px) {
+  .QR-Code img {
+    margin-top: 0;
+    max-width: 30vw;   /* Responsive width relative to viewport */
+    max-height: 45vh;  /* Prevent it from being too tall */
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+}
+
+@media (min-width: 1000px) {
+  .QR-Code img {
+    margin-top: 0;
+    max-width: 25vw;   /* Responsive width relative to viewport */
+    max-height: 25vh;  /* Prevent it from being too tall */
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+}
+
+.footer-box {
+  width: 100%;
+  max-width: 700px;
+  min-width: 200px;
+  background: linear-gradient(135deg, #cdffd8, #94b9ff);
+  padding: 1rem;
+  color: white;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+  margin-top: 15px;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 40px 40px 40px 40px;
+  box-sizing: border-box;
+  padding-left: 1.5rem;    /* add space on left */
+  padding-right: 1.5rem;   /* add space on right */
+  z-index: 2;
+}
+
+@media (max-width: 480px) {
+  .footer-box {
+    width: 300px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@media (max-height: 750px) {
+  .footer-box {
+    width: 300px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-size: 14px;
+  }
+}
+
+.footer-content {
+  min-width: 50px;
+  width: fit-content;
+  max-width: 100%;
+  max-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;     /* Optional: use 'left' for natural flow */
+  box-sizing: border-box;
+}
+
+.footer-fonts {
+  margin-top: 0;
+  display: flex;
+  max-width: 100%;
+  height: auto;
+  position: relative;
+  color: #000000;
+  z-index: 5;
+}
+
+.footer-fonts a {
+  color: #000; /* black or your preferred color */
+  pointer-events: auto;
+  text-decoration: none;
+}
+
+.footer-fonts a:hover {
+  color: yellow; /* highlight color on hover */
+  text-decoration: underline;
+}
+
+.bible-link {
+  margin-top: 0;
+  display: flex;
+  max-width: 100%;
+  height: auto;
+  position: relative;
+  z-index: 5;
+}
+
+.bible-link a {
+  color: black;
+  pointer-events: auto;
+  position: relative;
+  z-index: 10;
+}
+
+.bible-link a:hover {
+  color: yellow; /* or any other color */
+  text-decoration: underline; /* optional */
+}
+
+.footer-fonts i, .bible-link i {
+  color: rgb(0, 204, 255);
+}
+
+.mission-logo {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.mission-logo-img {
+  width: 150px;
+  height: 90px;
+  margin: 0; /* reset the negative margin */
+  background-image: url('https://www.biblesociety.sg/wp-content/uploads/2015/05/path114.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin: 0;
+  display: block;
+}
+
+.mission-logo img {
+  width: 150px;
+}
+
+@media (max-width: 480px) {
+  .mission-logo img {
+    width: 150px;
+  }
+}
+
+.footer-address {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  width: 900px;
+  padding-top: 13px;
+  padding-left: 16px;
+  padding-right: 16px;
+  text-align: center;
+}
+
+.footer-address a{
+  pointer-events: auto;
+  position: relative;
+  z-index: 10;
+  color: #fff;
+}
+
+.footer-address a:visited {
+  color: #fff; 
+}
+
+.footer-address a:hover {
+  color: yellow; /* or any other color */
+  text-decoration: underline; /* optional */
+}
+
+
+
+@media (max-width: 480px) {
+  .footer-address {
+    width: 300px;
+  }
+}
+
+/* For editing the template */
+/* Hide labels from front-end */
+.editor-only {
+  display: none;
+}
+
+/*Hide border in front-end*/
+.editor-only-border[style*="border"] {
+  border: none !important; 
+  border-color: transparent !important;
+  border-width: 0 !important;
+  border-style: none !important;
+}

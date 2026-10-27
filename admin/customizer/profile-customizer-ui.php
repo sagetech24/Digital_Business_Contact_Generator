@@ -994,6 +994,12 @@ function output_custom_profile_styles() {
         return;
     }
 
+    // IBEX uses an isolated layout/stylesheet and must not inherit BSS customizer rules.
+    $org = BSS_Business_Contact_Organization::get_organization($person_id);
+    if ($org === 'ibex') {
+        return;
+    }
+
     $design = BSS_Business_Contact_Card_Template::get_design_for_person($person_id);
     bss_pc_render_design_css($design);
 }

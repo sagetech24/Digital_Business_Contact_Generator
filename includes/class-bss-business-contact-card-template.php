@@ -32,7 +32,32 @@ class BSS_Business_Contact_Card_Template {
             'hia'         => 'single-person_details_HIA.php',
             'hopevillage' => 'single-person_details_hopevillage.php',
             'sol'         => 'single-person_details_SOL.php',
+            'ibex'        => 'single-person_details_IBEX.php',
         ];
+    }
+
+    /**
+     * Stylesheet URL that matches a template PHP basename
+     * (e.g. single-person_details_IBEX.php → css/single-person_details_IBEX.css).
+     *
+     * @param string $template_php Absolute or relative .php template path/filename.
+     * @return string
+     */
+    public static function get_stylesheet_url_for_template($template_php) {
+        $base = pathinfo($template_php, PATHINFO_FILENAME);
+        if ($base === '' || $base === '.' || $base === '..') {
+            $base = 'single-person_details_BSS';
+        }
+
+        $css_file = $base . '.css';
+        $css_path = dirname(dirname(__FILE__)) . '/css/' . $css_file;
+
+        if (!is_file($css_path)) {
+            $css_file = 'style.css';
+        }
+
+        $main = dirname(__DIR__) . '/Digital_Business_Contact_Generator.php';
+        return plugins_url('css/' . $css_file, $main);
     }
 
     public static function init() {
@@ -722,9 +747,7 @@ class BSS_Business_Contact_Card_Template {
     }
 
     public static function maybe_seed_defaults() {
-        if (get_option(self::SEED_OPTION) === '1.0') {
-            return;
-        }
+        // Always run: seed_defaults() skips organisations that already have a card_template.
         self::seed_defaults();
     }
 

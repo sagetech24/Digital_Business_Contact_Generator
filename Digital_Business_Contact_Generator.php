@@ -325,7 +325,7 @@ function bss_rewrite_flush() {
     BSS_Business_Contact_Card_Template::seed_defaults();
     BSS_Business_Contact_Card_Template::ensure_design_settings();
     flush_rewrite_rules();
-    update_option('bss_bc_org_rewrite_version', '1.2');
+    update_option('bss_bc_org_rewrite_version', '1.3');
 }
 
 

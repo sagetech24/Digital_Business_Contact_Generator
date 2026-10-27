@@ -6,6 +6,7 @@
  * hia          → /hia/{slug}
  * hopevillage  → /hopevillage/{slug}
  * sol          → /sol/{slug}
+ * ibex         → /ibex/{slug}
  */
 
 if (!defined('ABSPATH')) {
@@ -30,6 +31,7 @@ class BSS_Business_Contact_Organization {
             'hia'         => 'hia',
             'hopevillage' => 'hopevillage',
             'sol'         => 'sol',
+            'ibex'        => 'ibex',
         ];
     }
 
@@ -44,6 +46,7 @@ class BSS_Business_Contact_Organization {
             'hia'         => __('HIA', 'bss-business-contact'),
             'hopevillage' => __('Hope Village', 'bss-business-contact'),
             'sol'         => __('SOL', 'bss-business-contact'),
+            'ibex'        => __('IBEX', 'bss-business-contact'),
         ];
     }
 
@@ -398,7 +401,7 @@ class BSS_Business_Contact_Organization {
      */
     public static function maybe_flush_rewrites() {
         $stored = get_option('bss_bc_org_rewrite_version');
-        $needed = '1.2';
+        $needed = '1.3';
 
         if ($stored === $needed) {
             return;

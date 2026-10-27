@@ -44,6 +44,7 @@ Each person can be assigned an organisation. Permalinks use a matching prefix:
 | HIA | `/hia/{slug}` |
 | Hope Village | `/hopevillage/{slug}` |
 | SOL | `/sol/{slug}` |
+| IBEX | `/ibex/{slug}` |
 
 ### Card templates (`card_template`)
 
@@ -54,6 +55,8 @@ Each person can be assigned an organisation. Permalinks use a matching prefix:
   - `single-person_details_HIA.php`
   - `single-person_details_hopevillage.php`
   - `single-person_details_SOL.php`
+  - `single-person_details_IBEX.php`
+- Each template loads a matching stylesheet under `/css/` (e.g. `single-person_details_IBEX.css`) so designs stay isolated
 - Default templates are seeded on activation
 
 ### Profile Customizer
