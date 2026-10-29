@@ -79,6 +79,31 @@ class BSS_Business_Contact_Card_Template {
      *
      * @return array<string,string>
      */
+    /**
+     * Organisation-specific design defaults (merged over get_design_defaults()).
+     *
+     * @param string $organization
+     * @return array<string,string>
+     */
+    public static function get_design_defaults_for_organization($organization) {
+        $defaults = self::get_design_defaults();
+        $organization = is_string($organization) ? $organization : 'default';
+
+        if ($organization === 'ibex') {
+            // Prefer the Media Library asset used in Profile Customizer for IBEX.
+            $defaults['background_image']      = content_url('/uploads/2023/04/IBEx.jpg');
+            $defaults['background_size']       = '100%';
+            $defaults['media_background_size'] = '100%';
+            $defaults['overlay_color']         = '#FFFFFF';
+            $defaults['background_overlay']    = '0%';
+            $defaults['profile_border_color']  = '#2a2a2a';
+            $defaults['profile_border_width']  = '2';
+            $defaults['text_color']            = '#2f3430';
+        }
+
+        return $defaults;
+    }
+
     public static function get_design_defaults() {
         return [
             'background_image'                => 'https://www.biblesociety.sg/wp-content/uploads/2015/05/image.jpeg',
@@ -188,16 +213,22 @@ class BSS_Business_Contact_Card_Template {
     }
 
     /**
-     * @param int $template_id card_template post ID
+     * @param int         $template_id card_template post ID
+     * @param string|null $organization Optional org key for org-specific defaults
      * @return array<string,string>
      */
-    public static function get_design($template_id) {
+    public static function get_design($template_id, $organization = null) {
         $template_id = (int) $template_id;
         $stored      = get_post_meta($template_id, self::DESIGN_META_KEY, true);
         $advanced    = get_option('profile_customizer_defaults', []);
-        $base        = self::get_design_defaults();
 
-        if (is_array($advanced) && !empty($advanced)) {
+        if ($organization === null && $template_id > 0) {
+            $organization = self::get_organization($template_id);
+        }
+
+        $base = self::get_design_defaults_for_organization($organization ? $organization : 'default');
+
+        if (is_array($advanced) && !empty($advanced) && $organization !== 'ibex') {
             $base = array_merge($base, array_intersect_key($advanced, $base));
         }
 
@@ -227,9 +258,9 @@ class BSS_Business_Contact_Card_Template {
     public static function get_design_for_organization($organization) {
         $post = self::get_by_organization($organization);
         if ($post instanceof WP_Post) {
-            return self::get_design($post->ID);
+            return self::get_design($post->ID, $organization);
         }
-        return self::get_design_defaults();
+        return self::get_design_defaults_for_organization($organization);
     }
 
     /**
@@ -261,11 +292,11 @@ class BSS_Business_Contact_Card_Template {
             }
 
             if ($org === 'default' && !empty($legacy)) {
-                self::update_design($post->ID, array_merge(self::get_design_defaults(), $legacy));
+                self::update_design($post->ID, array_merge(self::get_design_defaults_for_organization($org), $legacy));
             } else {
                 $advanced = get_option('profile_customizer_defaults', []);
-                $design   = self::get_design_defaults();
-                if (is_array($advanced) && !empty($advanced)) {
+                $design   = self::get_design_defaults_for_organization($org);
+                if ($org !== 'ibex' && is_array($advanced) && !empty($advanced)) {
                     $design = array_merge($design, array_intersect_key($advanced, $design));
                 }
                 self::update_design($post->ID, $design);

@@ -3,6 +3,7 @@
  * IBEX organisation card template.
  * Mapped via card_template CPT (organisation: ibex).
  * Styles: css/single-person_details_IBEX.css (isolated from other templates).
+ * Background / logos come from Profile Customizer design settings for IBEX.
  */
 
 if (!defined('ABSPATH')) {
@@ -12,7 +13,19 @@ if (!defined('ABSPATH')) {
 $ibex_css = class_exists('BSS_Business_Contact_Card_Template')
     ? BSS_Business_Contact_Card_Template::get_stylesheet_url_for_template(__FILE__)
     : plugin_dir_url(__FILE__) . '../css/single-person_details_IBEX.css';
-$ibex_logo = plugin_dir_url(dirname(__FILE__)) . 'assets/ibex-logo.png';
+
+$person_id = get_the_ID();
+$design    = ($person_id && class_exists('BSS_Business_Contact_Card_Template'))
+    ? BSS_Business_Contact_Card_Template::get_design_for_person($person_id)
+    : [];
+
+$ibex_bg = !empty($design['background_image']) ? (string) $design['background_image'] : '';
+$ibex_logo = !empty($design['bottom_logo_image'])
+    ? (string) $design['bottom_logo_image']
+    : plugin_dir_url(dirname(__FILE__)) . 'assets/ibex-logo.png';
+
+$has_bg = $ibex_bg !== '';
+$card_classes = 'ibex-card' . ($has_bg ? ' has-ibex-bg' : '');
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -28,7 +41,8 @@ $ibex_logo = plugin_dir_url(dirname(__FILE__)) . 'assets/ibex-logo.png';
 </head>
 <body <?php body_class('bss-card-org-ibex ibex-card-page'); ?>>
 
-<div class="ibex-card">
+<div class="<?php echo esc_attr($card_classes); ?>"<?php echo $has_bg ? ' style="--ibex-card-bg: url(\'' . esc_url($ibex_bg) . '\');"' : ''; ?>>
+    <?php if (!$has_bg) : ?>
     <div class="ibex-card__wave" aria-hidden="true">
         <svg class="ibex-card__wave-svg" viewBox="0 0 400 160" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
             <path fill="#1f6b3a" d="M0,0 H400 V70 C340,95 280,55 220,78 C150,105 90,60 0,88 Z"/>
@@ -36,6 +50,7 @@ $ibex_logo = plugin_dir_url(dirname(__FILE__)) . 'assets/ibex-logo.png';
             <path fill="#b7db57" d="M0,78 C70,58 130,110 200,88 C280,62 340,108 400,82 V130 C320,150 250,115 180,138 C100,162 50,125 0,145 Z"/>
         </svg>
     </div>
+    <?php endif; ?>
 
     <div class="ibex-card__photo">
         <?php
@@ -104,6 +119,12 @@ $ibex_logo = plugin_dir_url(dirname(__FILE__)) . 'assets/ibex-logo.png';
         ?>
     </div>
 
+    <?php
+    // When the customizer background already includes the IBEX logo (e.g. IBEx.jpg),
+    // skip the separate logo image to avoid duplication.
+    $bg_includes_brand = $has_bg && (bool) preg_match('/ibex/i', $ibex_bg);
+    if (!$bg_includes_brand) :
+        ?>
     <div class="ibex-card__brand">
         <img
             class="ibex-card__logo"
@@ -113,6 +134,9 @@ $ibex_logo = plugin_dir_url(dirname(__FILE__)) . 'assets/ibex-logo.png';
             height="66"
         >
     </div>
+    <?php else : ?>
+    <div class="ibex-card__brand ibex-card__brand--spacer" aria-hidden="true"></div>
+    <?php endif; ?>
 </div>
 
 <?php wp_footer(); ?>

@@ -46,7 +46,11 @@ body.ibex-card-page #wpadminbar + * {
   width: 100%;
   max-width: var(--ibex-card-max);
   margin: 0 auto;
-  background: #ffffff;
+  background-color: #ffffff;
+  background-image: var(--ibex-card-bg, none);
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: 100% 100%;
   border-radius: 4px;
   box-shadow: 0 10px 30px rgba(20, 40, 20, 0.12);
   overflow: hidden;
@@ -54,7 +58,24 @@ body.ibex-card-page #wpadminbar + * {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  min-height: 640px;
+  min-height: 720px;
+  aspect-ratio: 240 / 374;
+}
+
+.ibex-card.has-ibex-bg {
+  /* Branded canvas (e.g. IBEx.jpg): waves + footer logo live in the image */
+  min-height: 0;
+}
+
+.ibex-card.has-ibex-bg .ibex-card__wave {
+  display: none;
+}
+
+.ibex-card.has-ibex-bg .ibex-card__brand--spacer {
+  width: 100%;
+  flex: 0 0 auto;
+  min-height: 18%;
+  padding: 0;
 }
 
 .ibex-card__wave {

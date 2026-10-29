@@ -994,14 +994,97 @@ function output_custom_profile_styles() {
         return;
     }
 
-    // IBEX uses an isolated layout/stylesheet and must not inherit BSS customizer rules.
-    $org = BSS_Business_Contact_Organization::get_organization($person_id);
+    $org    = BSS_Business_Contact_Organization::get_organization($person_id);
+    $design = BSS_Business_Contact_Card_Template::get_design_for_person($person_id);
+
+    // IBEX uses isolated .ibex-card* selectors — never apply BSS layout rules.
     if ($org === 'ibex') {
+        bss_pc_render_ibex_design_css($design);
         return;
     }
 
-    $design = BSS_Business_Contact_Card_Template::get_design_for_person($person_id);
     bss_pc_render_design_css($design);
+}
+
+/**
+ * Map Profile Customizer design settings onto IBEX-only selectors.
+ *
+ * @param array<string,string> $design
+ */
+function bss_pc_render_ibex_design_css($design) {
+    if (!is_array($design)) {
+        return;
+    }
+
+    $g = static function ($key, $fallback = '') use ($design) {
+        return isset($design[$key]) && $design[$key] !== '' ? (string) $design[$key] : $fallback;
+    };
+
+    $bg_url   = $g('background_image');
+    $bg_size  = $g('background_size', '100%');
+    $bg_media = $g('media_background_size', '100%');
+    $text     = $g('text_color', '#2f3430');
+    $border_c = $g('profile_border_color', '#2a2a2a');
+    $border_w = $g('profile_border_width', '2');
+    $bottom_logo = $g('bottom_logo_image');
+    $bottom_w    = $g('bottom_logo_size_width', '220');
+    $bottom_h    = $g('bottom_logo_size_height', '66');
+    $media_bw    = $g('media_bottom_logo_size_width', '180');
+    $media_bh    = $g('media_bottom_logo_size_height', '54');
+
+    // IBEX canvas should fill the card (IBEx.jpg is a full branded frame).
+    $normalize_ibex_bg_size = static function ($value) {
+        $value = trim((string) $value);
+        if ($value === '' || $value === '100%' || is_numeric($value)) {
+            return '100% 100%';
+        }
+        if (preg_match('/^\d+(\.\d+)?%$/', $value)) {
+            return '100% 100%';
+        }
+        return $value;
+    };
+    $bg_size_css  = $normalize_ibex_bg_size($bg_size);
+    $bg_media_css = $normalize_ibex_bg_size($bg_media);
+
+    echo "<style id=\"bss-ibex-customizer-css\">\n";
+
+    if ($bg_url !== '') {
+        echo ".ibex-card {\n";
+        echo "  background-image: url('" . esc_url($bg_url) . "');\n";
+        echo "  background-repeat: no-repeat;\n";
+        echo "  background-position: top center;\n";
+        echo "  background-size: " . esc_attr($bg_size_css) . ";\n";
+        echo "  background-color: #ffffff;\n";
+        echo "}\n";
+        echo ".ibex-card.has-ibex-bg .ibex-card__wave { display: none; }\n";
+        echo "@media (max-width: 750px) {\n";
+        echo "  .ibex-card {\n";
+        echo "    background-size: " . esc_attr($bg_media_css) . ";\n";
+        echo "  }\n";
+        echo "}\n";
+    }
+
+    echo ".ibex-card__name { color: " . esc_attr($text) . "; }\n";
+    echo ".ibex-card__photo {\n";
+    echo "  border-color: " . esc_attr($border_c) . ";\n";
+    echo "  border-width: " . esc_attr($border_w) . "px;\n";
+    echo "}\n";
+
+    if ($bottom_logo !== '') {
+        echo ".ibex-card__logo {\n";
+        echo "  width: " . esc_attr($bottom_w) . "px;\n";
+        echo "  max-width: 72%;\n";
+        echo "  height: auto;\n";
+        echo "}\n";
+        echo "@media (max-width: 750px) {\n";
+        echo "  .ibex-card__logo { width: " . esc_attr($media_bw) . "px; }\n";
+        echo "}\n";
+    }
+
+    // Silence unused vars when only background is configured.
+    unset($bottom_h, $media_bh);
+
+    echo "</style>\n";
 }
 
 function debug_profile_customizer_output() {
