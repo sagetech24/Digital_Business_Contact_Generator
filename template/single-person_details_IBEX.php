@@ -81,7 +81,7 @@ $card_classes = 'ibex-card' . ($has_bg ? ' has-ibex-bg' : '');
                     // Position / designation (editor block index 2)
                     if (!empty($matches[0][2])) {
                         $designation = trim(wp_kses_post($matches[0][2]));
-                        if ($designation !== '') {
+                        if ($designation !== '' || $designation !== '&nbsp;') {
                             echo '<div class="ibex-card__role Designation-fonts">' . $designation . '</div>';
                         }
                     }
@@ -95,7 +95,6 @@ $card_classes = 'ibex-card' . ($has_bg ? ' has-ibex-bg' : '');
                     }
                 }
 
-                echo '<br />';
                 echo '<div class="ibex-card__qr">';
                 if (preg_match('/\[qr-code-contact-information-card[^\]]*\]/i', $content_without_images, $shortcode_match)) {
                     $vcf_url = '';

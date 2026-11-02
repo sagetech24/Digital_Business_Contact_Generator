@@ -18,7 +18,7 @@
 html,
 body.ibex-card-page {
   margin: 0;
-  padding: 0;
+  padding: 0 !important;
   min-height: 100%;
   background: #f3f4f2;
   color: var(--ibex-text);
@@ -125,7 +125,7 @@ body.ibex-card-page #wpadminbar + * {
 }
 
 .ibex-card__body {
-  top: 5rem;
+  top: 8rem;
   position: relative;
   z-index: 1;
   width: 100%;
@@ -184,7 +184,7 @@ body.ibex-card-page #wpadminbar + * {
 }
 
 .ibex-card__role {
-  margin: 0 0 0.35rem;
+  margin: 1rem 0 0.35rem;
   padding: 0 1rem;
   font-size: 1.05rem;
   font-weight: 400;
@@ -255,13 +255,26 @@ body.ibex-card-page #wpadminbar + * {
   }
 
   .ibex-card {
-    min-height: 100vh;
+    /* Taller canvas so the background image stretches higher on mobile */
+    min-height: calc(100svh + 64px);
+    aspect-ratio: 180 / 310;
     border-radius: 0;
     box-shadow: none;
     max-width: 100%;
+    background-size: 100% 100%;
+    background-position: top center;
+  }
+
+  .ibex-card.has-ibex-bg {
+    /* Override desktop min-height: 0 so the branded bg gains height */
+    min-height: calc(100svh + 64px);
   }
 
   .ibex-card__wave {
     height: 150px;
+  }
+
+  .ibex-card__body {
+    top: 6rem;
   }
 }
