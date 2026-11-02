@@ -18,11 +18,91 @@ BSS_Business_Contact_Customizer::init();
 
 add_action('init', 'custom_contact_register_post_type');
 
+/**
+ * Default block-editor template for new person_details posts.
+ *
+ * @return array
+ */
+function bss_bc_person_details_block_template() {
+    $label = static function ($text) {
+        return [
+            'core/paragraph',
+            [
+                'content'   => $text,
+                'align'     => 'center',
+                'className' => 'editor-only',
+                'style'     => [
+                    'typography' => [
+                        'fontSize'   => '20px',
+                        'fontWeight' => 'bold',
+                    ],
+                    'color' => [
+                        'text' => '#0A0909',
+                    ],
+                ],
+            ],
+        ];
+    };
+
+    $field = static function ($placeholder) {
+        return [
+            'core/paragraph',
+            [
+                'content'     => '',
+                'placeholder' => $placeholder,
+                'className'   => 'editor-only-border',
+                'style'       => [
+                    'border' => [
+                        'width' => '1px',
+                        'style' => 'solid',
+                        'color' => 'black',
+                    ],
+                ],
+            ],
+        ];
+    };
+
+    return [
+        [
+            'core/group',
+            [],
+            [
+                $label('Insert Profile Picture'),
+                // Minimal attrs only. Empty image must save as <figure><img alt=""/></figure>
+                // (this WP version does not use a self-closing empty image).
+                [
+                    'core/image',
+                    [
+                        'align' => 'center',
+                    ],
+                ],
+                $label('Position/Designation'),
+                $field('Enter position or designation...'),
+                $label('Quote'),
+                $field('Enter quote here...'),
+                $label('Insert QR'),
+                [
+                    'core/shortcode',
+                    [
+                        'text' => '[qr-code-contact-information-card card_id="42"]',
+                    ],
+                ],
+                $label('QRCode VCF file'),
+                $field('Enter vCard (.vcf) file URL here'),
+                $label('Phone Number'),
+                $field('Enter phone number'),
+                $label('Email Address'),
+                $field('Enter email address'),
+            ],
+        ],
+    ];
+}
+
 function custom_contact_register_post_type() {
     register_post_type('person_details', array(
         'public' => true,
         'show_in_menu' => true,
-        'show_in_rest' => true, // needed for block editor
+        'show_in_rest' => true, // required for block editor + CPT template
         'has_archive' => true,
         'rewrite' => ['slug' => 'id', 'with_front' => false], //custom url
         'labels' => array(
@@ -47,180 +127,249 @@ function custom_contact_register_post_type() {
             'menu_name' => __('Digital Card Generator'),
             'name_admin_bar' => __('Person'),
         ),
-        'supports' => array('title', 'editor'),
+        'supports' => array('title', 'editor', 'custom-fields'),
         'template_lock' => 'all',
-        'template' => array(
-            array('core/group', array(), array(
-                array('core/paragraph', array(
-                    'content' => 'Insert Profile Picture',
-                    'align' => 'center',
-                    'className' => 'editor-only',
-                    'style' => array(
-                        'typography' => array(
-                            'fontSize' => '20px',
-                            'fontWeight' => 'bold'
-                        ),
-                        'color' => array(
-                            'text' => '#0A0909',
-                        ),
-                    ),
-                )),
-                array('core/image', array(
-                    'align' => 'center',
-                    'sizeSlug' => 'thumbnail',
-                    'style' => array(
-                        'border' => array(
-                            'width' => '5px',
-                            'style' => 'solid',
-                            'color' => 'black',
-                            'radius' => '100px'
-                        ),
-                    )
-                )),
-                array('core/paragraph', array(
-                    'content' => 'Position/Designation',
-                    'align' => 'center',
-                    'className' => 'editor-only',
-                    'style' => array(
-                        'typography' => array(
-                            'fontSize' => '20px',
-                            'fontWeight' => 'bold'
-                        ),
-                        'color' => array(
-                            'text' => '#0A0909',
-                        ),
-                    )
-                )),
-                array('core/paragraph', array(
-                    'placeholder' => 'Enter position or designation...',
-                    'className' => 'editor-only-border',
-                    'style' => array(
-                        'border' => array(
-                            'width' => '1px',
-                            'style' => 'solid',
-                            'color' => 'black'
-                        ),
-                    )
-                )),
-                array('core/paragraph', array(
-                    'content' => 'Quote',
-                    'align' => 'center',
-                    'className' => 'editor-only',
-                    'style' => array(
-                        'typography' => array(
-                            'fontSize' => '20px',
-                            'fontWeight' => 'bold'
-                        ),
-                        'color' => array(
-                            'text' => '#0A0909',
-                        ),
-                    )
-                )),
-                array('core/paragraph', array(
-                    'placeholder' => 'Enter quote here...',
-                    'className' => 'editor-only-border',
-                    'style' => array(
-                        'border' => array(
-                            'width' => '1px',
-                            'style' => 'solid',
-                            'color' => 'black'
-                        ),
-                    )
-                )),
-                array('core/paragraph', array(
-                    'content' => 'Insert QR',
-                    'align' => 'center',
-                    'className' => 'editor-only',
-                    'style' => array(
-                        'typography' => array(
-                            'fontSize' => '20px',
-                            'fontWeight' => 'bold'
-                        ),
-                        'color' => array(
-                            'text' => '#0A0909',
-                        ),
-                    )
-                )),
-                array('core/shortcode', array(
-                    'placeholder' => '[qr-code-contact-information-card card_id="42"]'
-                )),
-                array('core/paragraph', array(
-                    'content' => 'QRCode VCF file',
-                    'align' => 'center',
-                    'className' => 'editor-only',
-                    'style' => array(
-                        'typography' => array(
-                            'fontSize' => '20px',
-                            'fontWeight' => 'bold'
-                        ),
-                        'color' => array(
-                            'text' => '#0A0909',
-                        ),
-                    )
-                )),
-                array('core/paragraph', array(
-                    'placeholder' => 'Enter vCard (.vcf) file URL here',
-                    'style' => array(
-                        'border' => array(
-                            'width' => '1px',
-                            'style' => 'solid',
-                            'color' => 'black'
-                        ),
-                    )
-                )),
-                array('core/paragraph', array(
-                    'content' => 'Phone Number',
-                    'align' => 'center',
-                    'className' => 'editor-only',
-                    'style' => array(
-                        'typography' => array(
-                            'fontSize' => '20px',
-                            'fontWeight' => 'bold'
-                        ),
-                        'color' => array(
-                            'text' => '#0A0909',
-                        ),
-                    )
-                )),
-                array('core/paragraph', array(
-                    'placeholder' => 'Enter phone number',
-                    'className' => 'editor-only-border',
-                    'style' => array(
-                        'border' => array(
-                            'width' => '1px',
-                            'style' => 'solid',
-                            'color' => 'black'
-                        ),
-                    )
-                )),
-                array('core/paragraph', array(
-                    'content' => 'Email Address',
-                    'align' => 'center',
-                    'className' => 'editor-only',
-                    'style' => array(
-                        'typography' => array(
-                            'fontSize' => '20px',
-                            'fontWeight' => 'bold'
-                        ),
-                        'color' => array(
-                            'text' => '#0A0909',
-                        ),
-                    )
-                )),
-                array('core/paragraph', array(
-                    'placeholder' => 'Enter email address',
-                    'className' => 'editor-only-border',
-                    'style' => array(
-                        'border' => array(
-                            'width' => '1px',
-                            'style' => 'solid',
-                            'color' => 'black'
-                        ),
-                    )
-                ))
-            )),
-        ),
+        'template' => bss_bc_person_details_block_template(),
     ));
+}
+
+/**
+ * Always use the block editor for person_details so the CPT template appears.
+ * Theme (act-mini) and Classic Editor can otherwise force an empty classic editor.
+ */
+add_filter('use_block_editor_for_post_type', 'bss_bc_force_block_editor_for_person', 100, 2);
+add_filter('use_block_editor_for_post', 'bss_bc_force_block_editor_for_person_post', 100, 2);
+add_filter('gutenberg_can_edit_post_type', 'bss_bc_force_gutenberg_for_person_type', 100, 2);
+add_filter('gutenberg_can_edit_post', 'bss_bc_force_gutenberg_for_person_post', 100, 2);
+add_filter('classic_editor_enabled_editors_for_post_type', 'bss_bc_classic_editor_person_editors', 100, 2);
+
+function bss_bc_force_block_editor_for_person($use, $post_type) {
+    if ($post_type === 'person_details') {
+        return true;
+    }
+    return $use;
+}
+
+function bss_bc_force_block_editor_for_person_post($use, $post) {
+    if ($post instanceof WP_Post && $post->post_type === 'person_details') {
+        return true;
+    }
+    return $use;
+}
+
+function bss_bc_force_gutenberg_for_person_type($can_edit, $post_type = '') {
+    if ($post_type === 'person_details') {
+        return true;
+    }
+    return $can_edit;
+}
+
+function bss_bc_force_gutenberg_for_person_post($can_edit, $post = null) {
+    if ($post instanceof WP_Post && $post->post_type === 'person_details') {
+        return true;
+    }
+    return $can_edit;
+}
+
+function bss_bc_classic_editor_person_editors($editors, $post_type) {
+    if ($post_type === 'person_details') {
+        return [
+            'block'   => true,
+            'classic' => false,
+        ];
+    }
+    return $editors;
+}
+
+/**
+ * Ensure CPT args keep the block template even if another plugin alters registration.
+ *
+ * @param array  $args
+ * @param string $post_type
+ * @return array
+ */
+add_filter('register_post_type_args', 'bss_bc_ensure_person_details_template_args', 20, 2);
+function bss_bc_ensure_person_details_template_args($args, $post_type) {
+    if ($post_type !== 'person_details') {
+        return $args;
+    }
+
+    $args['show_in_rest']  = true;
+    $args['template']      = bss_bc_person_details_block_template();
+    $args['template_lock'] = 'all';
+    if (empty($args['supports']) || !is_array($args['supports'])) {
+        $args['supports'] = ['title', 'editor', 'custom-fields'];
+    } elseif (!in_array('editor', $args['supports'], true)) {
+        $args['supports'][] = 'editor';
+    }
+
+    return $args;
+}
+
+/**
+ * Serialized block markup matching bss_bc_person_details_block_template().
+ * Used as default_content so new Persons are never an empty editor.
+ *
+ * @return string
+ */
+function bss_bc_person_details_default_block_content() {
+    $label = static function ($text) {
+        return '<!-- wp:paragraph {"align":"center","className":"editor-only","style":{"typography":{"fontSize":"20px","fontWeight":"bold"},"color":{"text":"#0A0909"}}} -->'
+            . '<p class="has-text-align-center editor-only has-text-color" style="color:#0A0909;font-size:20px;font-weight:bold">'
+            . esc_html($text)
+            . '</p>'
+            . '<!-- /wp:paragraph -->';
+    };
+
+    $field = static function ($placeholder) {
+        return '<!-- wp:paragraph {"placeholder":'
+            . wp_json_encode($placeholder)
+            . ',"className":"editor-only-border","style":{"border":{"width":"1px","style":"solid","color":"black"}}} -->'
+            . '<p class="editor-only-border"></p>'
+            . '<!-- /wp:paragraph -->';
+    };
+
+    $parts = [
+        '<!-- wp:group -->',
+        '<div class="wp-block-group">',
+        $label('Insert Profile Picture'),
+        bss_bc_empty_profile_image_block_markup(),
+        $label('Position/Designation'),
+        $field('Enter position or designation...'),
+        $label('Quote'),
+        $field('Enter quote here...'),
+        $label('Insert QR'),
+        '<!-- wp:shortcode -->',
+        '[qr-code-contact-information-card card_id="42"]',
+        '<!-- /wp:shortcode -->',
+        $label('QRCode VCF file'),
+        $field('Enter vCard (.vcf) file URL here'),
+        $label('Phone Number'),
+        $field('Enter phone number'),
+        $label('Email Address'),
+        $field('Enter email address'),
+        '</div>',
+        '<!-- /wp:group -->',
+    ];
+
+    return implode("\n", $parts);
+}
+
+add_filter('default_content', 'bss_bc_person_details_default_content', 10, 2);
+function bss_bc_person_details_default_content($content, $post) {
+    if (!($post instanceof WP_Post) || $post->post_type !== 'person_details') {
+        return $content;
+    }
+
+    if (is_string($content) && trim($content) !== '') {
+        return $content;
+    }
+
+    return bss_bc_person_details_default_block_content();
+}
+
+/**
+ * Prefill auto-draft Persons created on "Add New" so the template is present immediately.
+ *
+ * @param int     $post_id
+ * @param WP_Post $post
+ * @param bool    $update
+ */
+/**
+ * Canonical empty profile Image block markup for this WP version.
+ *
+ * @return string
+ */
+function bss_bc_empty_profile_image_block_markup() {
+    return "<!-- wp:image {\"align\":\"center\"} -->\n"
+        . '<figure class="wp-block-image aligncenter"><img alt=""/></figure>' . "\n"
+        . '<!-- /wp:image -->';
+}
+
+/**
+ * Repair empty/invalid profile Image blocks that trigger "Attempt Block Recovery".
+ *
+ * This WordPress build always saves empty images as <figure><img alt=""/></figure>.
+ * Self-closing image comments or empty figures without <img> are invalid.
+ *
+ * @param string $content
+ * @return string
+ */
+function bss_bc_repair_empty_profile_image_blocks($content) {
+    if (!is_string($content) || $content === '') {
+        return $content;
+    }
+
+    $valid = bss_bc_empty_profile_image_block_markup();
+
+    // Self-closing empty image comments.
+    $content = preg_replace(
+        '/<!--\s*wp:image(\s+\{.*?\})?\s*\/-->/is',
+        $valid,
+        $content
+    );
+
+    // Open/close image blocks with no real image src.
+    $content = preg_replace_callback(
+        '/<!--\s*wp:image(\s+\{.*?\})?\s*-->(.*?)<!--\s*\/wp:image\s*-->/is',
+        static function ($m) use ($valid) {
+            $inner = isset($m[2]) ? $m[2] : '';
+
+            // Keep blocks that already have a real uploaded image.
+            if (preg_match('/<img[^>]+src=["\'][^"\']+["\']/i', $inner)) {
+                return $m[0];
+            }
+
+            return $valid;
+        },
+        $content
+    );
+
+    return is_string($content) ? $content : '';
+}
+
+add_filter('content_edit_pre', 'bss_bc_repair_person_details_image_on_edit', 10, 2);
+function bss_bc_repair_person_details_image_on_edit($content, $post_id) {
+    $post = get_post($post_id);
+    if (!($post instanceof WP_Post) || $post->post_type !== 'person_details') {
+        return $content;
+    }
+    return bss_bc_repair_empty_profile_image_blocks($content);
+}
+
+add_action('wp_insert_post', 'bss_bc_seed_person_details_auto_draft', 20, 3);
+function bss_bc_seed_person_details_auto_draft($post_id, $post, $update) {
+    if ($update || !($post instanceof WP_Post) || $post->post_type !== 'person_details') {
+        return;
+    }
+
+    if ($post->post_status !== 'auto-draft') {
+        return;
+    }
+
+    $content = trim((string) $post->post_content);
+    $seed    = bss_bc_person_details_default_block_content();
+
+    if ($content !== '' && $content === bss_bc_repair_empty_profile_image_blocks($content)) {
+        return;
+    }
+
+    if ($content === '') {
+        $new_content = $seed;
+    } else {
+        $new_content = bss_bc_repair_empty_profile_image_blocks($content);
+        if ($new_content === $content) {
+            return;
+        }
+    }
+
+    // Avoid recursion.
+    remove_action('wp_insert_post', 'bss_bc_seed_person_details_auto_draft', 20);
+    wp_update_post([
+        'ID'           => (int) $post_id,
+        'post_content' => $new_content,
+    ]);
+    add_action('wp_insert_post', 'bss_bc_seed_person_details_auto_draft', 20, 3);
 }
 
 add_filter('enter_title_here', 'custom_change_title_placeholder', 20);

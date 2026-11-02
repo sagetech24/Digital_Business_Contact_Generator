@@ -570,7 +570,11 @@ function register_profile_customizer_settings() {
                 'Roboto' => [
                     'label' => 'Roboto',
                     'css' => '"Roboto", "Helvetica Neue", sans-serif',
-                ]
+                ],
+                'system-ui' => [
+                    'label' => 'system-ui',
+                    'css' => 'system-ui, sans-serif',
+                ],
             ];
 
             $name_font_weight = bss_pc_val('name_font_weight', 'Bold'); // default font
@@ -662,7 +666,11 @@ function register_profile_customizer_settings() {
                 'Roboto' => [
                     'label' => 'Roboto',
                     'css' => '"Roboto", "Helvetica Neue", sans-serif',
-                ]
+                ],
+                'system-ui' => [
+                    'label' => 'system-ui',
+                    'css' => 'system-ui, sans-serif',
+                ],
             ];
 
             $designation_font_weight = bss_pc_val('designation_font_weight', 'Bold'); // default font
@@ -757,6 +765,11 @@ function register_profile_customizer_settings() {
                 'Arial' => [
                     'label' => 'Arial',
                     'css' => 'Arial, sans-serif',
+                    'style' => 'normal',
+                ],
+                'system-ui' => [
+                    'label' => 'system-ui',
+                    'css' => 'system-ui, sans-serif',
                     'style' => 'normal',
                 ],
                 'Rubik Italic' => [
@@ -1007,6 +1020,83 @@ function output_custom_profile_styles() {
 }
 
 /**
+ * Shared font maps for Template Customizer → front-end CSS.
+ *
+ * @return array{name: array<string,array{css:string}>, quote: array<string,array{css:string,style:string}>, weight: array<string,int>, size: array<string,string>}
+ */
+function bss_pc_typography_maps() {
+    return [
+        'name' => [
+            'Arial'     => ['css' => 'Arial, Helvetica, sans-serif'],
+            'Segoe UI'  => ['css' => "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"],
+            'Georgia'   => ['css' => '"Georgia", "Times New Roman", serif'],
+            'Roboto'    => ['css' => '"Roboto", "Helvetica Neue", sans-serif'],
+            'system-ui' => ['css' => 'system-ui, sans-serif'],
+            'Ariel'     => ['css' => 'Arial, Helvetica, sans-serif'],
+        ],
+        'quote' => [
+            'Caveat'        => ['css' => "'Caveat', cursive", 'style' => 'italic'],
+            'Roboto'        => ['css' => "'Roboto', sans-serif", 'style' => 'normal'],
+            'Georgia'       => ['css' => 'Georgia, serif', 'style' => 'normal'],
+            'Arial'         => ['css' => 'Arial, sans-serif', 'style' => 'normal'],
+            'system-ui'     => ['css' => 'system-ui, sans-serif', 'style' => 'normal'],
+            'Rubik Italic'  => ['css' => 'Rubik, sans-serif', 'style' => 'italic'],
+            'Caveat Script' => ['css' => "'Caveat', cursive", 'style' => 'italic'],
+        ],
+        'weight' => [
+            'Regular'  => 400,
+            'Medium'   => 500,
+            'SemiBold' => 600,
+            'Bold'     => 700,
+        ],
+        'size' => [
+            'Small'   => '0.8em',
+            'Regular' => '1em',
+            'Medium'  => '1.2em',
+            'Large'   => '1.5em',
+            'XL'      => '2em',
+        ],
+    ];
+}
+
+/**
+ * Resolve typography CSS values from a design pack.
+ *
+ * @param array<string,string> $design
+ * @return array<string,string|int>
+ */
+function bss_pc_resolve_typography($design) {
+    $maps = bss_pc_typography_maps();
+    $g    = static function ($key, $fallback = '') use ($design) {
+        return isset($design[$key]) && $design[$key] !== '' ? (string) $design[$key] : $fallback;
+    };
+
+    $name_font     = $g('name_font', 'Arial');
+    $name_weight   = $g('name_font_weight', 'Bold');
+    $name_size     = $g('name_font_size', 'XL');
+    $desig_font    = $g('designation_font', 'Arial');
+    $desig_weight  = $g('designation_font_weight', 'Bold');
+    $desig_size    = $g('designation_font_size', 'Regular');
+    $quote_font    = $g('quote_font', 'Caveat');
+    $quote_weight  = $g('quote_font_weight', 'Bold');
+    $quote_size    = $g('quote_font_size', 'Regular');
+
+    return [
+        'name_font_css'           => isset($maps['name'][$name_font]) ? $maps['name'][$name_font]['css'] : 'Arial, Helvetica, sans-serif',
+        'name_font_weight'        => isset($maps['weight'][$name_weight]) ? $maps['weight'][$name_weight] : 700,
+        'name_font_size'          => isset($maps['size'][$name_size]) ? $maps['size'][$name_size] : '2em',
+        'designation_font_css'    => isset($maps['name'][$desig_font]) ? $maps['name'][$desig_font]['css'] : 'Arial, Helvetica, sans-serif',
+        'designation_font_weight' => isset($maps['weight'][$desig_weight]) ? $maps['weight'][$desig_weight] : 700,
+        'designation_font_size'   => isset($maps['size'][$desig_size]) ? $maps['size'][$desig_size] : '1em',
+        'quote_font_css'          => isset($maps['quote'][$quote_font]) ? $maps['quote'][$quote_font]['css'] : "'Caveat', cursive",
+        'quote_font_style'        => isset($maps['quote'][$quote_font]) ? $maps['quote'][$quote_font]['style'] : 'italic',
+        'quote_font_weight'       => isset($maps['weight'][$quote_weight]) ? $maps['weight'][$quote_weight] : 700,
+        'quote_font_size'         => isset($maps['size'][$quote_size]) ? $maps['size'][$quote_size] : '1em',
+        'text_color'              => $g('text_color', '#2f3430'),
+    ];
+}
+
+/**
  * Map Profile Customizer design settings onto IBEX-only selectors.
  *
  * @param array<string,string> $design
@@ -1020,17 +1110,28 @@ function bss_pc_render_ibex_design_css($design) {
         return isset($design[$key]) && $design[$key] !== '' ? (string) $design[$key] : $fallback;
     };
 
+    $typo = bss_pc_resolve_typography($design);
+
     $bg_url   = $g('background_image');
     $bg_size  = $g('background_size', '100%');
     $bg_media = $g('media_background_size', '100%');
-    $text     = $g('text_color', '#2f3430');
     $border_c = $g('profile_border_color', '#2a2a2a');
     $border_w = $g('profile_border_width', '2');
     $bottom_logo = $g('bottom_logo_image');
     $bottom_w    = $g('bottom_logo_size_width', '220');
-    $bottom_h    = $g('bottom_logo_size_height', '66');
     $media_bw    = $g('media_bottom_logo_size_width', '180');
-    $media_bh    = $g('media_bottom_logo_size_height', '54');
+    $content_gap = $g('content_gap', '16');
+    $media_gap   = $g('media_content_gap', '16');
+    $spacer_w    = $g('spacer_width', '300');
+    $spacer_h    = $g('spacer_height', '4');
+    $spacer_c    = $g('spacer_color', '#22ffa3');
+    $shadow_x    = $g('box_shadow_offsetx', '0');
+    $shadow_y    = $g('box_shadow_offsety', '4');
+    $shadow_blur = $g('box_shadow_blur', '10');
+    $shadow_color = $g('box_shadow_color', '#000000');
+    $shadow_alpha_key = $g('box_shadow_transparency', '40%');
+    $overlay_map = function_exists('bss_pc_overlay_hex_map') ? bss_pc_overlay_hex_map() : [];
+    $shadow_hex  = isset($overlay_map[$shadow_alpha_key]) ? $overlay_map[$shadow_alpha_key] : '66';
 
     // IBEX canvas should fill the card (IBEx.jpg is a full branded frame).
     $normalize_ibex_bg_size = static function ($value) {
@@ -1064,10 +1165,54 @@ function bss_pc_render_ibex_design_css($design) {
         echo "}\n";
     }
 
-    echo ".ibex-card__name { color: " . esc_attr($text) . "; }\n";
+    // Name (title)
+    echo ".ibex-card__name {\n";
+    echo "  font-family: " . esc_html($typo['name_font_css']) . ";\n";
+    echo "  font-weight: " . esc_html((string) $typo['name_font_weight']) . ";\n";
+    echo "  font-size: " . esc_html($typo['name_font_size']) . ";\n";
+    echo "  color: " . esc_attr($typo['text_color']) . ";\n";
+    echo "}\n";
+
+    // Designation / role — apply to wrapper and nested editor paragraphs
+    echo ".ibex-card__role,\n";
+    echo ".ibex-card__role p {\n";
+    echo "  font-family: " . esc_html($typo['designation_font_css']) . ";\n";
+    echo "  font-weight: " . esc_html((string) $typo['designation_font_weight']) . ";\n";
+    echo "  font-size: " . esc_html($typo['designation_font_size']) . ";\n";
+    echo "  color: " . esc_attr($typo['text_color']) . ";\n";
+    echo "}\n";
+
+    // Quote / secondary meta line
+    echo ".ibex-card__meta {\n";
+    echo "  font-family: " . esc_html($typo['quote_font_css']) . ";\n";
+    echo "  font-weight: " . esc_html((string) $typo['quote_font_weight']) . ";\n";
+    echo "  font-style: " . esc_html($typo['quote_font_style']) . ";\n";
+    echo "  font-size: " . esc_html($typo['quote_font_size']) . ";\n";
+    echo "  color: " . esc_attr($typo['text_color']) . ";\n";
+    echo "}\n";
+
+    echo ".ibex-card__body {\n";
+    echo "  gap: " . esc_attr($content_gap) . "px;\n";
+    echo "}\n";
+    echo "@media (max-width: 750px) {\n";
+    echo "  .ibex-card__body { gap: " . esc_attr($media_gap) . "px; }\n";
+    echo "}\n";
+
+    echo ".ibex-card__divider::before {\n";
+    echo "  background: " . esc_attr($spacer_c) . ";\n";
+    echo "  height: " . esc_attr($spacer_h) . "px;\n";
+    echo "}\n";
+    echo ".ibex-card__divider {\n";
+    echo "  width: min(78%, " . esc_attr($spacer_w) . "px);\n";
+    echo "}\n";
+    echo ".ibex-card__divider span {\n";
+    echo "  background: " . esc_attr($spacer_c) . ";\n";
+    echo "}\n";
+
     echo ".ibex-card__photo {\n";
     echo "  border-color: " . esc_attr($border_c) . ";\n";
     echo "  border-width: " . esc_attr($border_w) . "px;\n";
+    echo "  box-shadow: " . esc_attr($shadow_x) . "px " . esc_attr($shadow_y) . "px " . esc_attr($shadow_blur) . "px " . esc_attr($shadow_color . $shadow_hex) . ";\n";
     echo "}\n";
 
     if ($bottom_logo !== '') {
@@ -1080,9 +1225,6 @@ function bss_pc_render_ibex_design_css($design) {
         echo "  .ibex-card__logo { width: " . esc_attr($media_bw) . "px; }\n";
         echo "}\n";
     }
-
-    // Silence unused vars when only background is configured.
-    unset($bottom_h, $media_bh);
 
     echo "</style>\n";
 }

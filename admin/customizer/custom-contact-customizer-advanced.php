@@ -79,13 +79,13 @@ function render_profile_customizer_advanced() {
         'top_color_overlay' => ['0%', '20%', '40%', '60%', '80%', '100%'],
         'box_shadow_transparency' => ['0%', '20%', '40%', '60%', '80%', '100%'],
         'quote_box_shadow_transparency' => ['0%', '20%', '40%', '60%', '80%', '100%'],
-        'name_font' => ['Ariel', 'Segoe UI', 'Georgia', 'Roboto'],
+        'name_font' => ['Ariel', 'Arial', 'Segoe UI', 'Georgia', 'Roboto', 'system-ui'],
         'name_font_weight' => ['Regular', 'Medium', 'SemiBold', 'Bold'],
         'name_font_size' => ['Small', 'Regular', 'Medium', 'Large', 'XL'],
-        'designation_font' => ['Ariel', 'Segoe UI', 'Georgia', 'Roboto'],
+        'designation_font' => ['Ariel', 'Arial', 'Segoe UI', 'Georgia', 'Roboto', 'system-ui'],
         'designation_font_weight' => ['Regular', 'Medium', 'SemiBold', 'Bold'],
         'designation_font_size' => ['Small', 'Regular', 'Medium', 'Large', 'XL'],
-        'quote_font' => ['Caveat', 'Roboto', 'Georgia', 'Arial', 'Rubik Italic'],
+        'quote_font' => ['Caveat', 'Roboto', 'Georgia', 'Arial', 'system-ui', 'Rubik Italic'],
         'quote_font_weight' => ['Regular', 'Medium', 'SemiBold', 'Bold'],
         'quote_font_size' => ['Small', 'Regular', 'Medium', 'Large', 'XL']
     ];

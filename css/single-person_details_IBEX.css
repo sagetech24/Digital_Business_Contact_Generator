@@ -125,7 +125,7 @@ body.ibex-card-page #wpadminbar + * {
 }
 
 .ibex-card__body {
-  top: 3rem;
+  top: 5rem;
   position: relative;
   z-index: 1;
   width: 100%;
@@ -135,6 +135,11 @@ body.ibex-card-page #wpadminbar + * {
   flex-direction: column;
   align-items: center;
   flex: 1;
+  gap: 0;
+}
+
+.ibex-card__body > br {
+  display: none;
 }
 
 .ibex-card__name {
@@ -188,7 +193,7 @@ body.ibex-card-page #wpadminbar + * {
 }
 
 .ibex-card__role p {
-  margin: 2rem 0 0 0;
+  margin: 0 0 0 0;
   padding: 0;
   border: 0 !important;
 }

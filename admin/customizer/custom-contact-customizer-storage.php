@@ -140,11 +140,12 @@ function bss_pc_render_design_css($d) {
     $overlay_percentage = bss_pc_overlay_hex_map();
 
     $name_fonts = [
-        'Arial'    => ['css' => 'Arial, Helvetica, sans-serif'],
-        'Segoe UI' => ['css' => "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"],
-        'Georgia'  => ['css' => '"Georgia", "Times New Roman", serif'],
-        'Roboto'   => ['css' => '"Roboto", "Helvetica Neue", sans-serif'],
-        'Ariel'    => ['css' => 'Arial, Helvetica, sans-serif'],
+        'Arial'      => ['css' => 'Arial, Helvetica, sans-serif'],
+        'Segoe UI'   => ['css' => "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"],
+        'Georgia'    => ['css' => '"Georgia", "Times New Roman", serif'],
+        'Roboto'     => ['css' => '"Roboto", "Helvetica Neue", sans-serif'],
+        'system-ui'  => ['css' => 'system-ui, sans-serif'],
+        'Ariel'      => ['css' => 'Arial, Helvetica, sans-serif'],
     ];
 
     $quote_fonts = [
@@ -152,6 +153,7 @@ function bss_pc_render_design_css($d) {
         'Roboto'       => ['css' => "'Roboto', sans-serif", 'style' => 'normal'],
         'Georgia'      => ['css' => 'Georgia, serif', 'style' => 'normal'],
         'Arial'        => ['css' => 'Arial, sans-serif', 'style' => 'normal'],
+        'system-ui'    => ['css' => 'system-ui, sans-serif', 'style' => 'normal'],
         'Rubik Italic' => ['css' => 'Rubik, sans-serif', 'style' => 'italic'],
         'Caveat Script'=> ['css' => "'Caveat', cursive", 'style' => 'italic'],
     ];

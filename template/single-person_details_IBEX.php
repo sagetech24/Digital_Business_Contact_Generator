@@ -67,14 +67,11 @@ $card_classes = 'ibex-card' . ($has_bg ? ' has-ibex-bg' : '');
     </div>
     
     <div class="ibex-card__body">
-        <br />
         <?php
         if (have_posts()) :
             while (have_posts()) :
                 the_post();
-
-                echo '<h1 class="ibex-card__name">' . esc_html(get_the_title()) . '</h1>';
-                // echo '<div class="ibex-card__divider" aria-hidden="true"><span></span><span></span><span></span></div>';
+                echo '<h1 class="ibex-card__name Name-fonts">' . esc_html(get_the_title()) . '</h1>';
 
                 $content = get_the_content();
                 $content_without_images = preg_replace('/<img[^>]+\>/i', '', $content);
@@ -85,7 +82,7 @@ $card_classes = 'ibex-card' . ($has_bg ? ' has-ibex-bg' : '');
                     if (!empty($matches[0][2])) {
                         $designation = trim(wp_kses_post($matches[0][2]));
                         if ($designation !== '') {
-                            echo '<div class="ibex-card__role">' . $designation . '</div>';
+                            echo '<div class="ibex-card__role Designation-fonts">' . $designation . '</div>';
                         }
                     }
 
@@ -93,7 +90,7 @@ $card_classes = 'ibex-card' . ($has_bg ? ' has-ibex-bg' : '');
                     if (!empty($matches[0][4])) {
                         $extra = trim(wp_strip_all_tags($matches[0][4]));
                         if ($extra !== '') {
-                            echo '<div class="ibex-card__meta">' . esc_html($extra) . '</div>';
+                            echo '<div class="ibex-card__meta Quote-fonts">' . esc_html($extra) . '</div>';
                         }
                     }
                 }
