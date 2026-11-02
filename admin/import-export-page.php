@@ -82,7 +82,7 @@ if (!defined('ABSPATH')) {
     <h2><?php esc_html_e('Notes', 'bss-business-contact'); ?></h2>
     <ul style="list-style: disc; margin-left: 1.5em;">
         <li><?php esc_html_e('Export includes title, slug, status, organization, template_variant, and full post content (block editor HTML).', 'bss-business-contact'); ?></li>
-        <li><?php esc_html_e('Organization sets the public URL prefix (default → /id/, hia → /hia/, hopevillage → /hopevillage/, sol → /sol/).', 'bss-business-contact'); ?></li>
+        <li><?php esc_html_e('Organization sets the public URL prefix (default → /id/; other organisations use the prefixes configured under Organisations).', 'bss-business-contact'); ?></li>
         <li><?php esc_html_e('QR shortcodes reference card_id values from the WP QR Code Me vCard plugin. After import, re-link those shortcodes or migrate QR cards separately if QR codes do not display.', 'bss-business-contact'); ?></li>
         <li><?php esc_html_e('After importing on a new site, visit Settings → Permalinks and click Save if card URLs return 404.', 'bss-business-contact'); ?></li>
     </ul>

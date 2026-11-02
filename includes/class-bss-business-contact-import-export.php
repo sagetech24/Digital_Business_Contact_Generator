@@ -281,7 +281,7 @@ class BSS_Business_Contact_Import_Export {
             'items'       => $items,
             'notes'       => [
                 'QR shortcodes use card_id from the WP QR Code Me vCard plugin. Re-link or remigrate those cards on the destination site if QR codes break.',
-                'Organization controls the public URL prefix: default=/id/, hia=/hia/, hopevillage=/hopevillage/, sol=/sol/.',
+                'Organization controls the public URL prefix (default=/id/; others from Organisations settings).',
             ],
         ];
     }
