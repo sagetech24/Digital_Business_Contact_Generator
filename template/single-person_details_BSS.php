@@ -10,10 +10,9 @@
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <?php
-    $css_url = class_exists('BSS_Business_Contact_Card_Template')
-        ? BSS_Business_Contact_Card_Template::get_stylesheet_url_for_template(__FILE__)
-        : plugin_dir_url(__FILE__) . '../css/single-person_details_BSS.css';
-    echo '<link rel="stylesheet" href="' . esc_url($css_url) . '" type="text/css" media="all">';
+    if (class_exists('BSS_Business_Contact_Card_Template')) {
+        BSS_Business_Contact_Card_Template::print_stylesheet_link_for_template(__FILE__);
+    }
     ?>
     <link href="https://fonts.googleapis.com/css2?family=Allura&family=Dancing+Script&family=Great+Vibes&family=Pacifico&family=Satisfy&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">

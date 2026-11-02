@@ -40,24 +40,41 @@ class BSS_Business_Contact_Card_Template {
      * Stylesheet URL that matches a template PHP basename
      * (e.g. single-person_details_IBEX.php → css/single-person_details_IBEX.css).
      *
+     * Returns an empty string when no matching CSS file exists so templates
+     * with inline styles work without a missing-file link or forced fallback.
+     *
      * @param string $template_php Absolute or relative .php template path/filename.
-     * @return string
+     * @return string URL or empty string
      */
     public static function get_stylesheet_url_for_template($template_php) {
         $base = pathinfo($template_php, PATHINFO_FILENAME);
         if ($base === '' || $base === '.' || $base === '..') {
-            $base = 'single-person_details_BSS';
+            return '';
         }
 
         $css_file = $base . '.css';
         $css_path = dirname(dirname(__FILE__)) . '/css/' . $css_file;
 
         if (!is_file($css_path)) {
-            $css_file = 'style.css';
+            return '';
         }
 
         $main = dirname(__DIR__) . '/Digital_Business_Contact_Generator.php';
         return plugins_url('css/' . $css_file, $main);
+    }
+
+    /**
+     * Echo a stylesheet link only when a matching CSS file exists.
+     *
+     * @param string $template_php Absolute or relative .php template path/filename.
+     */
+    public static function print_stylesheet_link_for_template($template_php) {
+        $url = self::get_stylesheet_url_for_template($template_php);
+        if ($url === '') {
+            return;
+        }
+
+        echo '<link rel="stylesheet" href="' . esc_url($url) . '" type="text/css" media="all">' . "\n";
     }
 
     public static function init() {
@@ -65,6 +82,7 @@ class BSS_Business_Contact_Card_Template {
         add_action('add_meta_boxes', [__CLASS__, 'register_meta_boxes']);
         add_action('save_post_' . self::POST_TYPE, [__CLASS__, 'save_meta'], 10, 2);
         add_action('admin_notices', [__CLASS__, 'admin_notices']);
+        add_action('post_edit_form_tag', [__CLASS__, 'enable_multipart_form']);
 
         add_filter('manage_' . self::POST_TYPE . '_posts_columns', [__CLASS__, 'admin_columns']);
         add_action('manage_' . self::POST_TYPE . '_posts_custom_column', [__CLASS__, 'render_admin_column'], 10, 2);
@@ -72,6 +90,184 @@ class BSS_Business_Contact_Card_Template {
         add_action('admin_init', [__CLASS__, 'maybe_seed_defaults']);
         add_action('admin_init', [__CLASS__, 'maybe_ensure_design_settings'], 30);
         add_action('admin_post_bss_bc_seed_card_templates', [__CLASS__, 'handle_seed_request']);
+    }
+
+    /**
+     * Allow file uploads on the card_template edit screen.
+     *
+     * @param WP_Post $post
+     */
+    public static function enable_multipart_form($post) {
+        if ($post instanceof WP_Post && $post->post_type === self::POST_TYPE) {
+            echo ' enctype="multipart/form-data"';
+        }
+    }
+
+    /**
+     * Absolute path to the plugin CSS directory.
+     *
+     * @return string
+     */
+    public static function get_css_dir() {
+        return trailingslashit(dirname(__DIR__) . '/css');
+    }
+
+    /**
+     * Built-in template filenames that must not be overwritten by uploads.
+     *
+     * @return string[]
+     */
+    public static function get_protected_template_files() {
+        return array_values(array_unique(self::get_default_file_map()));
+    }
+
+    /**
+     * Store a transient admin notice for the current user.
+     *
+     * @param string $message
+     * @param string $type success|error|warning
+     */
+    public static function set_admin_notice($message, $type = 'error') {
+        set_transient(
+            'bss_bc_card_template_notice_' . get_current_user_id(),
+            [
+                'message' => (string) $message,
+                'type'    => in_array($type, ['success', 'error', 'warning'], true) ? $type : 'error',
+            ],
+            45
+        );
+    }
+
+    /**
+     * Handle an uploaded .php template into /template/.
+     *
+     * @param array $file $_FILES element
+     * @return string|WP_Error Filename on success
+     */
+    public static function handle_template_upload(array $file) {
+        if (!current_user_can('manage_options')) {
+            return new WP_Error('bss_bc_tpl_cap', __('You do not have permission to upload templates.', 'bss-business-contact'));
+        }
+
+        if (empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+            return new WP_Error('bss_bc_tpl_empty', __('No template file was uploaded.', 'bss-business-contact'));
+        }
+
+        if (!empty($file['error']) && (int) $file['error'] !== UPLOAD_ERR_OK) {
+            return new WP_Error('bss_bc_tpl_upload', __('Template upload failed. Please try again.', 'bss-business-contact'));
+        }
+
+        $name = isset($file['name']) ? basename(sanitize_file_name((string) $file['name'])) : '';
+        if ($name === '' || strtolower(substr($name, -4)) !== '.php') {
+            return new WP_Error('bss_bc_tpl_ext', __('Template must be a .php file.', 'bss-business-contact'));
+        }
+
+        // Basic sanity: readable PHP-ish content.
+        $contents = file_get_contents($file['tmp_name']);
+        if ($contents === false || $contents === '') {
+            return new WP_Error('bss_bc_tpl_read', __('Could not read the uploaded template.', 'bss-business-contact'));
+        }
+        if (strpos(ltrim($contents), '<?') !== 0) {
+            return new WP_Error(
+                'bss_bc_tpl_php',
+                __('Uploaded file does not look like a PHP template (missing opening PHP tag).', 'bss-business-contact')
+            );
+        }
+
+        if (in_array($name, self::get_protected_template_files(), true)) {
+            $base = pathinfo($name, PATHINFO_FILENAME);
+            $name = $base . '-custom.php';
+        }
+
+        // Avoid clobbering another protected rename target; uniquify if needed.
+        $dir = self::get_template_dir();
+        if (!is_dir($dir) || !is_writable($dir)) {
+            return new WP_Error(
+                'bss_bc_tpl_dir',
+                __('The template directory is not writable. Check plugin folder permissions.', 'bss-business-contact')
+            );
+        }
+
+        $target = $dir . $name;
+        if (file_exists($target) && in_array($name, self::get_protected_template_files(), true)) {
+            return new WP_Error('bss_bc_tpl_protected', __('That template filename is protected and cannot be overwritten.', 'bss-business-contact'));
+        }
+
+        if (file_exists($target)) {
+            $base = pathinfo($name, PATHINFO_FILENAME);
+            $name = $base . '-' . time() . '.php';
+            $target = $dir . $name;
+        }
+
+        if (!move_uploaded_file($file['tmp_name'], $target)) {
+            return new WP_Error('bss_bc_tpl_move', __('Could not save the uploaded template file.', 'bss-business-contact'));
+        }
+
+        // Restrict permissions on uploaded PHP.
+        chmod($target, 0644);
+
+        return $name;
+    }
+
+    /**
+     * Handle an optional matching .css upload into /css/.
+     *
+     * @param array  $file            $_FILES element
+     * @param string $template_php    Template filename that was (or will be) assigned
+     * @return string|WP_Error|null   CSS filename, error, or null if nothing uploaded
+     */
+    public static function handle_stylesheet_upload(array $file, $template_php) {
+        if (empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+            return null;
+        }
+
+        if (!current_user_can('manage_options')) {
+            return new WP_Error('bss_bc_css_cap', __('You do not have permission to upload stylesheets.', 'bss-business-contact'));
+        }
+
+        if (!empty($file['error']) && (int) $file['error'] !== UPLOAD_ERR_OK) {
+            return new WP_Error('bss_bc_css_upload', __('Stylesheet upload failed. Please try again.', 'bss-business-contact'));
+        }
+
+        $orig = isset($file['name']) ? basename(sanitize_file_name((string) $file['name'])) : '';
+        if ($orig === '' || strtolower(substr($orig, -4)) !== '.css') {
+            return new WP_Error('bss_bc_css_ext', __('Stylesheet must be a .css file.', 'bss-business-contact'));
+        }
+
+        // Name CSS to match the PHP template basename so get_stylesheet_url_for_template finds it.
+        $base = pathinfo((string) $template_php, PATHINFO_FILENAME);
+        if ($base === '' || $base === '.' || $base === '..') {
+            $base = pathinfo($orig, PATHINFO_FILENAME);
+        }
+        $name = $base . '.css';
+
+        $dir = self::get_css_dir();
+        if (!is_dir($dir) || !is_writable($dir)) {
+            return new WP_Error(
+                'bss_bc_css_dir',
+                __('The CSS directory is not writable. Check plugin folder permissions.', 'bss-business-contact')
+            );
+        }
+
+        $protected_css = [];
+        foreach (self::get_protected_template_files() as $php) {
+            $protected_css[] = pathinfo($php, PATHINFO_FILENAME) . '.css';
+        }
+
+        if (in_array($name, $protected_css, true) && file_exists($dir . $name)) {
+            return new WP_Error(
+                'bss_bc_css_protected',
+                __('That stylesheet matches a built-in template and cannot be overwritten. Rename your PHP template first.', 'bss-business-contact')
+            );
+        }
+
+        $target = $dir . $name;
+        if (!move_uploaded_file($file['tmp_name'], $target)) {
+            return new WP_Error('bss_bc_css_move', __('Could not save the uploaded stylesheet.', 'bss-business-contact'));
+        }
+
+        chmod($target, 0644);
+        return $name;
     }
 
     /**
@@ -594,10 +790,32 @@ class BSS_Business_Contact_Card_Template {
                         <?php
                         printf(
                             /* translators: %s: template directory path */
-                            esc_html__('Files from: %s', 'bss-business-contact'),
+                            esc_html__('Existing files from: %s', 'bss-business-contact'),
                             '<code>' . esc_html(self::get_template_dir()) . '</code>'
                         );
                         ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bss_card_template_upload"><?php esc_html_e('Upload template', 'bss-business-contact'); ?></label>
+                </th>
+                <td>
+                    <input type="file" name="bss_card_template_upload" id="bss_card_template_upload" accept=".php,text/x-php,application/x-php">
+                    <p class="description">
+                        <?php esc_html_e('Optional. Upload a .php card template to assign to this organisation. Built-in templates cannot be overwritten; a “-custom” name is used instead. If a file is uploaded, it is selected automatically on save.', 'bss-business-contact'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="bss_card_template_css_upload"><?php esc_html_e('Upload stylesheet', 'bss-business-contact'); ?></label>
+                </th>
+                <td>
+                    <input type="file" name="bss_card_template_css_upload" id="bss_card_template_css_upload" accept=".css,text/css">
+                    <p class="description">
+                        <?php esc_html_e('Optional. Upload only if styles are not inline in the PHP template. Saved as the same basename as the PHP file. If no matching CSS exists, none is loaded — the template still works normally.', 'bss-business-contact'); ?>
                     </p>
                 </td>
             </tr>
@@ -638,6 +856,54 @@ class BSS_Business_Contact_Card_Template {
             ? self::sanitize_template_file(wp_unslash($_POST['bss_card_template_file']))
             : self::get_default_file_map()['default'];
 
+        $uploaded_php = false;
+        $upload_error = false;
+        if (!empty($_FILES['bss_card_template_upload']['tmp_name'])) {
+            $upload = self::handle_template_upload($_FILES['bss_card_template_upload']);
+            if (is_wp_error($upload)) {
+                self::set_admin_notice($upload->get_error_message(), 'error');
+                $upload_error = true;
+            } else {
+                $file         = $upload;
+                $uploaded_php = true;
+            }
+        }
+
+        if (!empty($_FILES['bss_card_template_css_upload']['tmp_name'])) {
+            $css = self::handle_stylesheet_upload($_FILES['bss_card_template_css_upload'], $file);
+            if (is_wp_error($css)) {
+                self::set_admin_notice($css->get_error_message(), 'error');
+            } elseif (is_string($css) && $css !== '' && !$upload_error) {
+                self::set_admin_notice(
+                    $uploaded_php
+                        ? sprintf(
+                            /* translators: 1: php filename, 2: css filename */
+                            __('Template “%1$s” and stylesheet “%2$s” uploaded and assigned.', 'bss-business-contact'),
+                            $file,
+                            $css
+                        )
+                        : sprintf(
+                            /* translators: %s: css filename */
+                            __('Stylesheet “%s” uploaded for the selected template.', 'bss-business-contact'),
+                            $css
+                        ),
+                    'success'
+                );
+            }
+        } elseif ($uploaded_php) {
+            self::set_admin_notice(
+                sprintf(
+                    /* translators: %s: php filename */
+                    __('Template “%s” uploaded and assigned.', 'bss-business-contact'),
+                    $file
+                ),
+                'success'
+            );
+        }
+
+        // Re-sanitize after upload so the new file is accepted (now on disk).
+        $file = self::sanitize_template_file($file);
+
         $conflict = self::find_organization_conflict($org, $post_id);
         if ($conflict) {
             set_transient(
@@ -664,13 +930,23 @@ class BSS_Business_Contact_Card_Template {
     }
 
     public static function admin_notices() {
-        $key = 'bss_bc_card_template_error_' . get_current_user_id();
-        $msg = get_transient($key);
-        if (!$msg) {
-            return;
+        $uid = get_current_user_id();
+
+        $legacy_key = 'bss_bc_card_template_error_' . $uid;
+        $legacy     = get_transient($legacy_key);
+        if ($legacy) {
+            delete_transient($legacy_key);
+            echo '<div class="notice notice-error is-dismissible"><p>' . esc_html($legacy) . '</p></div>';
         }
-        delete_transient($key);
-        echo '<div class="notice notice-error is-dismissible"><p>' . esc_html($msg) . '</p></div>';
+
+        $notice_key = 'bss_bc_card_template_notice_' . $uid;
+        $notice     = get_transient($notice_key);
+        if (is_array($notice) && !empty($notice['message'])) {
+            delete_transient($notice_key);
+            $type  = isset($notice['type']) ? $notice['type'] : 'error';
+            $class = $type === 'success' ? 'notice-success' : ($type === 'warning' ? 'notice-warning' : 'notice-error');
+            echo '<div class="notice ' . esc_attr($class) . ' is-dismissible"><p>' . esc_html($notice['message']) . '</p></div>';
+        }
     }
 
     /**

@@ -10,10 +10,6 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-$ibex_css = class_exists('BSS_Business_Contact_Card_Template')
-    ? BSS_Business_Contact_Card_Template::get_stylesheet_url_for_template(__FILE__)
-    : plugin_dir_url(__FILE__) . '../css/single-person_details_IBEX.css';
-
 $person_id = get_the_ID();
 $design    = ($person_id && class_exists('BSS_Business_Contact_Card_Template'))
     ? BSS_Business_Contact_Card_Template::get_design_for_person($person_id)
@@ -32,7 +28,11 @@ $card_classes = 'ibex-card' . ($has_bg ? ' has-ibex-bg' : '');
 <head>
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="<?php echo esc_url($ibex_css); ?>" type="text/css" media="all">
+    <?php
+    if (class_exists('BSS_Business_Contact_Card_Template')) {
+        BSS_Business_Contact_Card_Template::print_stylesheet_link_for_template(__FILE__);
+    }
+    ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
@@ -51,7 +51,6 @@ $card_classes = 'ibex-card' . ($has_bg ? ' has-ibex-bg' : '');
         </svg>
     </div>
     <?php endif; ?>
-
     <div class="ibex-card__photo">
         <?php
         if (have_posts()) :
@@ -66,15 +65,16 @@ $card_classes = 'ibex-card' . ($has_bg ? ' has-ibex-bg' : '');
         endif;
         ?>
     </div>
-
+    
     <div class="ibex-card__body">
+        <br />
         <?php
         if (have_posts()) :
             while (have_posts()) :
                 the_post();
 
                 echo '<h1 class="ibex-card__name">' . esc_html(get_the_title()) . '</h1>';
-                echo '<div class="ibex-card__divider" aria-hidden="true"><span></span><span></span><span></span></div>';
+                // echo '<div class="ibex-card__divider" aria-hidden="true"><span></span><span></span><span></span></div>';
 
                 $content = get_the_content();
                 $content_without_images = preg_replace('/<img[^>]+\>/i', '', $content);
@@ -98,6 +98,7 @@ $card_classes = 'ibex-card' . ($has_bg ? ' has-ibex-bg' : '');
                     }
                 }
 
+                echo '<br />';
                 echo '<div class="ibex-card__qr">';
                 if (preg_match('/\[qr-code-contact-information-card[^\]]*\]/i', $content_without_images, $shortcode_match)) {
                     $vcf_url = '';

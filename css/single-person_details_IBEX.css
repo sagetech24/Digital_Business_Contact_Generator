@@ -11,8 +11,8 @@
   --ibex-orange-bright: #e0703a;
   --ibex-text: #2f3430;
   --ibex-text-muted: #4a524c;
-  --ibex-border: #2a2a2a;
-  --ibex-card-max: 420px;
+  --ibex-border: #60B059;
+  --ibex-card-max: 500px;
 }
 
 html,
@@ -59,7 +59,7 @@ body.ibex-card-page #wpadminbar + * {
   align-items: center;
   text-align: center;
   min-height: 720px;
-  aspect-ratio: 240 / 374;
+  aspect-ratio: 180 / 280;
 }
 
 .ibex-card.has-ibex-bg {
@@ -98,11 +98,12 @@ body.ibex-card-page #wpadminbar + * {
 .ibex-card__photo {
   position: relative;
   z-index: 2;
-  margin-top: 72px;
-  width: 168px;
-  height: 210px;
+  top: 4rem;
+  /* margin-top: 72px; */
+  width: 180px;
+  height: 250px;
   background: #ffffff;
-  border: 2px solid var(--ibex-border);
+  border: 1px solid var(--ibex-border);
   border-radius: 14px;
   box-sizing: border-box;
   overflow: hidden;
@@ -124,10 +125,11 @@ body.ibex-card-page #wpadminbar + * {
 }
 
 .ibex-card__body {
+  top: 3rem;
   position: relative;
   z-index: 1;
   width: 100%;
-  padding: 1.35rem 1.5rem 0.5rem;
+  padding: 0rem 1.5rem 0.5rem;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -136,7 +138,7 @@ body.ibex-card-page #wpadminbar + * {
 }
 
 .ibex-card__name {
-  margin: 0 0 0.85rem;
+  margin: 0 0 0.20rem;
   padding: 0 0.5rem;
   font-size: clamp(1.65rem, 5vw, 2rem);
   font-weight: 700;
@@ -149,7 +151,7 @@ body.ibex-card-page #wpadminbar + * {
   position: relative;
   width: min(78%, 260px);
   height: 14px;
-  margin: 0 0 1.1rem;
+  margin: 0 0 0.80rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -186,7 +188,7 @@ body.ibex-card-page #wpadminbar + * {
 }
 
 .ibex-card__role p {
-  margin: 0;
+  margin: 2rem 0 0 0;
   padding: 0;
   border: 0 !important;
 }
@@ -200,7 +202,7 @@ body.ibex-card-page #wpadminbar + * {
 }
 
 .ibex-card__qr {
-  margin: 0.25rem 0 1.5rem;
+  margin: 0rem 0 1.5rem;
   padding: 10px;
   border: 2px solid var(--ibex-orange);
   border-radius: 14px;
@@ -252,12 +254,6 @@ body.ibex-card-page #wpadminbar + * {
     border-radius: 0;
     box-shadow: none;
     max-width: 100%;
-  }
-
-  .ibex-card__photo {
-    width: 150px;
-    height: 188px;
-    margin-top: 64px;
   }
 
   .ibex-card__wave {
