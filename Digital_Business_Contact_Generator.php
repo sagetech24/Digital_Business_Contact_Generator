@@ -93,6 +93,8 @@ function bss_bc_person_details_block_template() {
                 $field('Enter phone number'),
                 $label('Email Address'),
                 $field('Enter email address'),
+                $label('Website'),
+                $field('Enter website URL'),
             ],
         ],
     ];
@@ -248,11 +250,100 @@ function bss_bc_person_details_default_block_content() {
         $field('Enter phone number'),
         $label('Email Address'),
         $field('Enter email address'),
+        $label('Website'),
+        $field('Enter website URL'),
         '</div>',
         '<!-- /wp:group -->',
     ];
 
     return implode("\n", $parts);
+}
+
+/**
+ * Website label + field block markup (matches CPT template).
+ *
+ * @return string
+ */
+function bss_bc_person_website_field_markup() {
+    $label = '<!-- wp:paragraph {"align":"center","className":"editor-only","style":{"typography":{"fontSize":"20px","fontWeight":"bold"},"color":{"text":"#0A0909"}}} -->'
+        . '<p class="has-text-align-center editor-only has-text-color" style="color:#0A0909;font-size:20px;font-weight:bold">Website</p>'
+        . '<!-- /wp:paragraph -->';
+
+    $field = '<!-- wp:paragraph {"placeholder":"Enter website URL","className":"editor-only-border","style":{"border":{"width":"1px","style":"solid","color":"black"}}} -->'
+        . '<p class="editor-only-border"></p>'
+        . '<!-- /wp:paragraph -->';
+
+    return $label . "\n" . $field;
+}
+
+/**
+ * @param string $content
+ */
+function bss_bc_person_content_has_website_field($content) {
+    if (!is_string($content) || $content === '') {
+        return false;
+    }
+
+    return (bool) preg_match('/Enter website URL|>Website<\/p>/i', $content);
+}
+
+/**
+ * Append Website field to existing person_details posts that predate the field.
+ *
+ * @param int $post_id
+ * @return bool True when content was updated
+ */
+function bss_bc_ensure_person_website_field($post_id) {
+    $post_id = (int) $post_id;
+    if ($post_id <= 0) {
+        return false;
+    }
+
+    $post = get_post($post_id);
+    if (!($post instanceof WP_Post) || $post->post_type !== 'person_details') {
+        return false;
+    }
+
+    $content = (string) $post->post_content;
+    if (bss_bc_person_content_has_website_field($content)) {
+        return false;
+    }
+
+    $inject = bss_bc_person_website_field_markup();
+    if (preg_match('/<\/div>\s*<!--\s*\/wp:group\s*-->\s*$/s', $content)) {
+        $content = preg_replace(
+            '/<\/div>\s*<!--\s*\/wp:group\s*-->\s*$/s',
+            $inject . "\n</div>\n<!-- /wp:group -->",
+            $content,
+            1
+        );
+    } else {
+        $content = rtrim($content) . "\n" . $inject . "\n";
+    }
+
+    $updated = wp_update_post(
+        [
+            'ID'           => $post_id,
+            'post_content' => $content,
+        ],
+        true
+    );
+
+    return !is_wp_error($updated) && (int) $updated === $post_id;
+}
+
+add_action('load-post.php', 'bss_bc_maybe_ensure_person_website_field_on_edit');
+function bss_bc_maybe_ensure_person_website_field_on_edit() {
+    if (!isset($_GET['post'])) {
+        return;
+    }
+
+    $post_id = (int) $_GET['post'];
+    if ($post_id <= 0 || !current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    bss_bc_ensure_person_website_field($post_id);
 }
 
 add_filter('default_content', 'bss_bc_person_details_default_content', 10, 2);
