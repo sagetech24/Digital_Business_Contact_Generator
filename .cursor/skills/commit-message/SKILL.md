@@ -1,159 +1,134 @@
 ---
-name: commit-message
+name: summarize-commit-push-message
 description: >-
-  Digital_Business_Contact_Generator repo only: group agent changes by conversation
-  response, then git add, commit, and push each response's work in order. Never
-  commit outside Digital_Business_Contact_Generator. Use when the user runs
-  /commit-message, or asks to commit, push, summarize changes, write a commit
-  message, or prepare a PR description for this plugin.
+  Summarize uncommitted work in Digital_Business_Contact_Generator, write
+  Conventional Commit messages, then git add / commit / push — only inside this
+  plugin. Use when the user runs /summarize-commit-push-message, or asks to summarize changes,
+  create a commit message, commit, or push for this plugin.
 disable-model-invocation: true
 ---
+# Summarize → Commit → Push (plugin-scoped)
 
-# Commit Message → Commit → Push (per agent response)
+## Hard scope (non-negotiable)
 
-**Repo scope: `Digital_Business_Contact_Generator/` only.** This skill never commits to any other git repo or path (not the parent `BSS/` workspace, not other plugins/themes, not other subprojects). Only files inside `Digital_Business_Contact_Generator/` may be staged, committed, or pushed.
+This skill’s **parent directory** is the only git scope:
 
-Repo root: `wp-content/plugins/Digital_Business_Contact_Generator/` (run **all** git commands with
-`git -C /Applications/MAMP/htdocs/BSS/wp-content/plugins/Digital_Business_Contact_Generator` or `working_directory` set there).
+```
+/Applications/MAMP/htdocs/BSS/wp-content/plugins/Digital_Business_Contact_Generator/
+```
 
-For `Digital_Business_Contact_Generator/`: analyze **uncommitted changes grouped by agent response**, then for each response **add → commit → push** before moving to the next.
+That folder is the git repo root. Resolve it as the directory that contains this skill’s `.cursor/skills/` tree (two levels up from this `SKILL.md`).
 
-## Default behavior (`/commit-message`)
+**Never:**
 
-Unless the user says **message only** or **PR description only**, do **not** stop at drafting text. Execute:
+- Inspect, stage, commit, or push paths **above** that parent (`plugins/`, `wp-content/`, `BSS/`, other plugins, themes, `registration-manager/`, etc.)
+- Run `git` without `-C` pointing at that parent (or an equivalent cwd locked inside it)
+- Mention outside-repo dirty files as work to commit
 
-1. Inspect current git changes
-2. Map changes to **agent responses** in this conversation (oldest response first)
-3. For each response that introduced changes, in order: **stage → commit → push**
-4. Report each commit hash and the final remote status
+**Always:**
 
-**One commit per agent response.** Do not squash multiple responses into one commit unless the user explicitly asks.
+- Run every git command with  
+  `git -C /Applications/MAMP/htdocs/BSS/wp-content/plugins/Digital_Business_Contact_Generator …`  
+  or `working_directory` set to that path
+- Treat only relative paths under that parent as valid stage targets
+
+## Default behavior
+
+When the user invokes this skill (or says e.g. “summarize the change and create a commit message”), **do not stop at draft text** unless they say **message only** or **PR description only**.
+
+Execute:
+
+1. Inspect git status/diff **inside the parent only**
+2. Summarize changes for the user
+3. Group by **agent response** (oldest first); one commit per response
+4. For each group: **stage → commit → push**
+5. Report hashes + push result
 
 ## Grouping by agent response
 
-An **agent response** is one assistant turn where code was changed (a distinct task, fix, or feature slice). Use conversation history as the source of truth:
+An **agent response** = one assistant turn that changed files.
 
-1. **Read the conversation** — walk assistant turns from oldest to newest. Each turn that edited files is a candidate commit.
-2. **Match files to responses** — assign each changed file (or path) to the response that introduced or last meaningfully changed it. Use the response summary, stated goal, and described file edits.
-3. **Handle overlap** — if a later response only touched files from an earlier response, attribute those edits to the later response (latest wins for that file in that turn).
-4. **Untracked / ambiguous files** — if a file cannot be tied to a single response, group it with the response whose theme best fits, or the most recent response that likely created it.
-
-If only **one** response made changes in this session, make a single commit and push once.
-
-If **no** conversation history is available (e.g. changes made outside the chat), fall back to splitting by logical theme from the diff (same as before: one theme = one commit).
+1. Walk conversation turns oldest → newest
+2. Assign each changed file under the parent to the response that last meaningfully edited it
+3. If a file was edited across turns and cannot be split without interactive `git add -p`, attribute it to the **latest** response that changed it (or one broader commit for that file)
+4. No conversation history → split by logical theme from the diff (one theme = one commit)
 
 ## Workflow
 
-### 1. Gather changes (Digital_Business_Contact_Generator only)
-
-Run in parallel **inside `Digital_Business_Contact_Generator/`**:
+### 1. Gather (parent only)
 
 ```bash
-git -C /Applications/MAMP/htdocs/BSS/wp-content/plugins/Digital_Business_Contact_Generator status --short
-git -C /Applications/MAMP/htdocs/BSS/wp-content/plugins/Digital_Business_Contact_Generator diff --stat
-git -C /Applications/MAMP/htdocs/BSS/wp-content/plugins/Digital_Business_Contact_Generator diff
-git -C /Applications/MAMP/htdocs/BSS/wp-content/plugins/Digital_Business_Contact_Generator diff --cached --stat
-git -C /Applications/MAMP/htdocs/BSS/wp-content/plugins/Digital_Business_Contact_Generator diff --cached
-git -C /Applications/MAMP/htdocs/BSS/wp-content/plugins/Digital_Business_Contact_Generator log -5 --oneline
-git -C /Applications/MAMP/htdocs/BSS/wp-content/plugins/Digital_Business_Contact_Generator status -sb
+REPO="/Applications/MAMP/htdocs/BSS/wp-content/plugins/Digital_Business_Contact_Generator"
+git -C "$REPO" status --short
+git -C "$REPO" status -sb
+git -C "$REPO" diff --stat
+git -C "$REPO" diff
+git -C "$REPO" diff --cached --stat
+git -C "$REPO" diff --cached
+git -C "$REPO" log -5 --oneline
 ```
 
-Include untracked files under `Digital_Business_Contact_Generator/` that belong to the agent's work. **Ignore** changes outside this repo — do not stage, commit, push, or mention them as follow-up work. Never stage secrets (`.env`, credentials, tokens).
+Include untracked files **under `$REPO` only**. Skip secrets (`.env`, credentials, tokens).
 
-### 2. Build the per-response commit queue
+### 2. Queue commits
 
-Produce an ordered queue before running any git write commands. Example:
+| # | Response theme | Files (relative to parent) |
+|---|----------------|----------------------------|
+| 1 | … | `template/…`, `css/…` |
 
-| # | Response theme (from conversation) | Files |
-|---|--------------------------------------|-------|
-| 1 | Add IBEX org + isolated card template | `template/single-person_details_IBEX.php`, `css/...` |
-| 2 | Split shared CSS into per-template files | `css/*.css`, `template/*.php` |
-| 3 | Document IBEX in README | `README.md` |
+- Order = conversation order
+- Do not mix separable response file sets in one commit
 
-Rules:
-
-- **Order = conversation order** (first response committed first).
-- **One response → one commit** — message summarizes that response's work only.
-- **Do not mix files from different responses** in the same commit when they can be separated at path level.
-- If one file was edited across multiple responses and cannot be split without `git add -p`, put it in the **last** response that changed it, or use one broader commit for that file only.
-
-### 3. For each response commit (repeat until queue is empty)
-
-**a. Stage only that response's files**
+### 3. Per response: add → commit → push
 
 ```bash
-git add -- path/to/file1 path/to/file2
-```
-
-Do not stage files belonging to later responses.
-
-**b. Write the commit message from that response's summary**
-
-Derive `type(scope): subject` and bullets from what that specific response accomplished — not from the whole session.
-
-```bash
-git commit -m "$(cat <<'EOF'
+REPO="/Applications/MAMP/htdocs/BSS/wp-content/plugins/Digital_Business_Contact_Generator"
+git -C "$REPO" add -- path/relative/to/parent1 path/relative/to/parent2
+git -C "$REPO" commit -m "$(cat <<'EOF'
 type(scope): concise imperative summary (≤ 72 chars)
 
-- Bullet explaining what this response changed and why
+- Bullet: what changed and why
 - Another bullet if needed
 
 EOF
 )"
+git -C "$REPO" push -u origin HEAD
+git -C "$REPO" status -sb
 ```
 
-**c. Push to the tracked remote branch**
+- Use full permissions for push auth
+- **No force-push** unless the user explicitly asks
+- Finish push of commit N before staging N+1
+- If push fails, stop the queue and report
+- If commit fails on a hook, fix and create a **new** commit (do not amend a failed commit)
 
-```bash
-git push -u origin HEAD
-```
+### 4. Finish report
 
-Use `required_permissions: ["all"]` (or equivalent) so push can authenticate. Do **not** force-push (`--force`, `--force-with-lease`) unless the user explicitly asks.
+- Summary of the change(s)
+- Each theme → subject + short hash + pushed/failed
+- Any remaining dirty files **inside the parent only**
 
-**d. Verify, then continue to the next response**
-
-```bash
-git status -sb
-```
-
-Finish push of commit N before staging commit N+1.
-
-### 4. Finish
-
-Summarize for the user:
-
-- Each response theme → commit subject + short hash
-- That each was pushed (or any push failure)
-- Remaining unstaged/untracked files **inside `Digital_Business_Contact_Generator/`**, if any
-
-Do not suggest committing files outside `Digital_Business_Contact_Generator/`.
-
-## Commit Format
+## Commit format
 
 ```
 type(scope): concise imperative summary (≤ 72 chars)
 
 - Bullet explaining what changed and why
-- Another bullet if needed
 ```
 
-### Type Table
-
-| Type | When to use |
-|------|-------------|
-| `feat` | New feature or capability |
+| Type | When |
+|------|------|
+| `feat` | New feature |
 | `fix` | Bug fix |
-| `refactor` | Code restructuring, no behavior change |
-| `style` | Formatting, whitespace, missing semicolons |
-| `perf` | Performance improvement |
-| `chore` | Build, config, dependency updates |
-| `docs` | Documentation only |
-| `test` | Adding or updating tests |
+| `refactor` | Restructure, no behavior change |
+| `style` | Formatting only |
+| `perf` | Performance |
+| `chore` | Build/config/deps |
+| `docs` | Docs only |
+| `test` | Tests |
 
-### Scope Map (derive from changed file paths)
-
-| Path pattern | Scope |
-|---|---|
+| Path under parent | Scope |
+|-------------------|--------|
 | `Digital_Business_Contact_Generator.php` | `core` |
 | `includes/class-bss-business-contact-organization.php` | `organization` |
 | `includes/class-bss-business-contact-card-template.php` | `template` |
@@ -164,57 +139,28 @@ type(scope): concise imperative summary (≤ 72 chars)
 | `assets/**` | `assets` |
 | `README.md`, `docs/**` | `docs` |
 | `.cursor/**` | `skills` |
-| Multiple scopes | pick the dominant one, or use the parent feature name |
+| Multiple | dominant path, or feature name |
 
-## Safety rules
+## Modes
 
-- **Digital_Business_Contact_Generator only** — never run `git add`, `commit`, or `push` outside `/Applications/MAMP/htdocs/BSS/wp-content/plugins/Digital_Business_Contact_Generator`.
-- Never update git config.
-- Never use interactive git (`-i`, `git add -p` when it requires a TTY).
-- Never skip hooks (`--no-verify`) unless the user explicitly asks.
-- Never amend a commit that was already pushed, unless the user explicitly asks and conditions for amend are met.
-- Never commit `.env`, credentials, or API tokens; warn and skip them.
-- **Sequential only:** finish push of response N before starting response N+1.
-- If push fails (auth/network), stop the queue, report the error, and leave remaining changes uncommitted or already committed locally as appropriate.
-- If commit fails (hook), fix the issue and create a **new** commit; do not amend a failed commit.
-
-## Message-only / PR-only modes
-
-- **Message only** — draft one Conventional Commit per agent response; do not `git add`, `commit`, or `push`.
-- **PR description** — also produce the PR section below; do not open a PR unless asked.
-
-## PR Description Format
-
-When asked for a PR description, use:
+- **Default** — summarize + commit + push (parent only)
+- **Message only** — draft Conventional Commits; no add/commit/push
+- **PR description only** — use the template below; do not open a PR unless asked
 
 ```markdown
 ## Summary
-Brief 1–2 sentence overview of the change.
+1–2 sentences
 
 ## Changes
-- Bullet per agent response / logical change
+- Bullet per response / logical change
 
 ## Notes
-- Migration steps, breaking changes, or review hints (omit section if none)
+- Migrations / review hints (omit if none)
 ```
 
-## Examples
+## Safety
 
-**Single response → single commit:**
-```
-feat(templates): add IBEX card layout with isolated stylesheet
-
-- Register ibex organisation and /ibex/{slug} permalinks
-- Add single-person_details_IBEX.php/.css matching brand sample
-- Load per-template CSS so IBEX styles do not affect other orgs
-```
-
-**Multi-response session (what `/commit-message` should do):**
-
-| Response | Action |
-|----------|--------|
-| Response 1 — IBEX template | `git add` → commit `feat(templates): add IBEX card with isolated CSS` → `git push` |
-| Response 2 — per-template CSS split | `git add` → commit `refactor(styles): give each card template its own CSS file` → `git push` |
-| Response 3 — README | `git add` → commit `docs: document IBEX org and per-template stylesheets` → `git push` |
-
-Each row is a full add → commit → push cycle before the next response is processed.
+- Never update git config
+- Never interactive git (`-i`, TTY `add -p`)
+- Never `--no-verify` unless the user asks
+- Never amend an already-pushed commit unless the user asks and amend rules allow it
