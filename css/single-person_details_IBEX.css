@@ -7,7 +7,7 @@
   --ibex-green-dark: #1f6b3a;
   --ibex-green-mid: #3f9a4a;
   --ibex-green-lime: #b7db57;
-  --ibex-orange: #c4783a;
+  --ibex-orange: #d36b4d;
   --ibex-orange-bright: #e0703a;
   --ibex-text: #2f3430;
   --ibex-text-muted: #4a524c;
@@ -143,7 +143,7 @@ body.ibex-card-page #wpadminbar + * {
 }
 
 .ibex-card__name {
-  margin: 0 0 0.20rem;
+  margin: 0 0 0.45rem;
   padding: 0 0.5rem;
   font-size: clamp(1.65rem, 5vw, 2rem);
   font-weight: 700;
@@ -152,43 +152,36 @@ body.ibex-card-page #wpadminbar + * {
   color: var(--ibex-text);
 }
 
+/* Dot — line — dot — line — dot (matches brand divider artwork) */
 .ibex-card__divider {
-  position: relative;
-  width: min(78%, 260px);
-  height: 14px;
-  margin: 0 0 0.80rem;
+  width: min(72%, 220px);
+  height: 10px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 5px;
 }
 
-.ibex-card__divider::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 2px;
-  background: var(--ibex-orange);
-  transform: translateY(-50%);
-}
-
-.ibex-card__divider span {
-  position: relative;
-  z-index: 1;
-  width: 9px;
-  height: 9px;
+.ibex-card__divider-dot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--ibex-orange);
   flex-shrink: 0;
 }
 
+.ibex-card__divider-line {
+  flex: 1 1 auto;
+  height: 2px;
+  background: var(--ibex-orange);
+  border-radius: 1px;
+}
+
 .ibex-card__role {
-  margin: 1rem 0 0.35rem;
+  margin: 0.15rem 0 0.35rem;
   padding: 0 1rem;
   font-size: 1.05rem;
   font-weight: 400;
-  line-height: 1.45;
+  line-height: 1;
   color: var(--ibex-text-muted);
 }
 
@@ -207,12 +200,53 @@ body.ibex-card-page #wpadminbar + * {
 }
 
 .ibex-card__qr {
-  margin: 0rem 0 1.5rem;
-  padding: 10px;
+  margin: 0 0 1rem;
+  padding: 3px;
   border: 2px solid var(--ibex-orange);
   border-radius: 14px;
   background: #fff;
   line-height: 0;
+}
+
+.ibex-card__contact {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.55rem;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 1rem;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
+}
+
+.ibex-card__contact-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: #111111;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+.ibex-card__contact-row:hover,
+.ibex-card__contact-row:focus {
+  color: #111111;
+  text-decoration: none;
+}
+
+.ibex-card__contact-row span {
+  word-break: break-word;
+}
+
+.ibex-card__contact-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  display: block;
 }
 
 .ibex-card__qr-link {
@@ -243,8 +277,9 @@ body.ibex-card-page #wpadminbar + * {
 
 .ibex-card__logo {
   display: block;
-  width: min(220px, 72%);
-  height: auto;
+  width: var(--ibex-logo-w, 150px);
+  height: var(--ibex-logo-h, auto);
+  max-width: 85%;
   margin: 0 auto;
   object-fit: contain;
 }
@@ -276,5 +311,10 @@ body.ibex-card-page #wpadminbar + * {
 
   .ibex-card__body {
     top: 6rem;
+  }
+
+  .ibex-card__logo {
+    width: var(--ibex-logo-media-w, var(--ibex-logo-w, 150px));
+    height: var(--ibex-logo-media-h, var(--ibex-logo-h, auto));
   }
 }

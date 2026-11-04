@@ -1118,8 +1118,10 @@ function bss_pc_render_ibex_design_css($design) {
     $border_c = $g('profile_border_color', '#2a2a2a');
     $border_w = $g('profile_border_width', '2');
     $bottom_logo = $g('bottom_logo_image');
-    $bottom_w    = $g('bottom_logo_size_width', '220');
-    $media_bw    = $g('media_bottom_logo_size_width', '180');
+    $bottom_w    = $g('bottom_logo_size_width', '150');
+    $bottom_h    = $g('bottom_logo_size_height', '90');
+    $media_bw    = $g('media_bottom_logo_size_width', '150');
+    $media_bh    = $g('media_bottom_logo_size_height', '90');
     $content_gap = $g('content_gap', '16');
     $media_gap   = $g('media_content_gap', '16');
     $spacer_w    = $g('spacer_width', '300');
@@ -1198,15 +1200,15 @@ function bss_pc_render_ibex_design_css($design) {
     echo "  .ibex-card__body { gap: " . esc_attr($media_gap) . "px; }\n";
     echo "}\n";
 
-    echo ".ibex-card__divider::before {\n";
-    echo "  background: " . esc_attr($spacer_c) . ";\n";
-    echo "  height: " . esc_attr($spacer_h) . "px;\n";
-    echo "}\n";
     echo ".ibex-card__divider {\n";
     echo "  width: min(78%, " . esc_attr($spacer_w) . "px);\n";
     echo "}\n";
-    echo ".ibex-card__divider span {\n";
+    echo ".ibex-card__divider-dot {\n";
     echo "  background: " . esc_attr($spacer_c) . ";\n";
+    echo "}\n";
+    echo ".ibex-card__divider-line {\n";
+    echo "  background: " . esc_attr($spacer_c) . ";\n";
+    echo "  height: " . esc_attr($spacer_h) . "px;\n";
     echo "}\n";
 
     echo ".ibex-card__photo {\n";
@@ -1216,13 +1218,23 @@ function bss_pc_render_ibex_design_css($design) {
     echo "}\n";
 
     if ($bottom_logo !== '') {
+        echo ".ibex-card__brand {\n";
+        echo "  --ibex-logo-w: " . esc_attr($bottom_w) . "px;\n";
+        echo "  --ibex-logo-h: " . esc_attr($bottom_h) . "px;\n";
+        echo "  --ibex-logo-media-w: " . esc_attr($media_bw) . "px;\n";
+        echo "  --ibex-logo-media-h: " . esc_attr($media_bh) . "px;\n";
+        echo "}\n";
         echo ".ibex-card__logo {\n";
         echo "  width: " . esc_attr($bottom_w) . "px;\n";
-        echo "  max-width: 72%;\n";
-        echo "  height: auto;\n";
+        echo "  height: " . esc_attr($bottom_h) . "px;\n";
+        echo "  max-width: 85%;\n";
+        echo "  object-fit: contain;\n";
         echo "}\n";
         echo "@media (max-width: 750px) {\n";
-        echo "  .ibex-card__logo { width: " . esc_attr($media_bw) . "px; }\n";
+        echo "  .ibex-card__logo {\n";
+        echo "    width: " . esc_attr($media_bw) . "px;\n";
+        echo "    height: " . esc_attr($media_bh) . "px;\n";
+        echo "  }\n";
         echo "}\n";
     }
 
