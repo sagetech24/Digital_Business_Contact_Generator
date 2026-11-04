@@ -332,8 +332,11 @@ function bss_bc_ensure_person_website_field($post_id) {
     return !is_wp_error($updated) && (int) $updated === $post_id;
 }
 
-add_action('load-post.php', 'bss_bc_maybe_ensure_person_website_field_on_edit');
-function bss_bc_maybe_ensure_person_website_field_on_edit() {
+/**
+ * Persist Website field injection + block markup repairs when opening a Person in admin.
+ */
+add_action('load-post.php', 'bss_bc_maybe_repair_person_details_on_edit');
+function bss_bc_maybe_repair_person_details_on_edit() {
     if (!isset($_GET['post'])) {
         return;
     }
@@ -344,6 +347,41 @@ function bss_bc_maybe_ensure_person_website_field_on_edit() {
     }
 
     bss_bc_ensure_person_website_field($post_id);
+    bss_bc_persist_person_details_content_repairs($post_id);
+}
+
+/**
+ * Save repaired person_details post_content when markup was fixed (values preserved).
+ *
+ * @param int $post_id
+ * @return bool
+ */
+function bss_bc_persist_person_details_content_repairs($post_id) {
+    $post_id = (int) $post_id;
+    if ($post_id <= 0) {
+        return false;
+    }
+
+    $post = get_post($post_id);
+    if (!($post instanceof WP_Post) || $post->post_type !== 'person_details') {
+        return false;
+    }
+
+    $content = (string) $post->post_content;
+    $repaired = bss_bc_repair_person_details_content($content);
+    if ($repaired === $content) {
+        return false;
+    }
+
+    $updated = wp_update_post(
+        [
+            'ID'           => $post_id,
+            'post_content' => $repaired,
+        ],
+        true
+    );
+
+    return !is_wp_error($updated) && (int) $updated === $post_id;
 }
 
 add_filter('default_content', 'bss_bc_person_details_default_content', 10, 2);
@@ -419,13 +457,220 @@ function bss_bc_repair_empty_profile_image_blocks($content) {
     return is_string($content) ? $content : '';
 }
 
-add_filter('content_edit_pre', 'bss_bc_repair_person_details_image_on_edit', 10, 2);
-function bss_bc_repair_person_details_image_on_edit($content, $post_id) {
+/**
+ * Unwrap nested <p> tags inside a paragraph block's HTML; return admin-entered value only.
+ *
+ * @param string $html
+ * @return string
+ */
+function bss_bc_unwrap_nested_paragraph_value($html) {
+    $html  = is_string($html) ? trim($html) : '';
+    $guard = 0;
+
+    while ($guard++ < 6 && $html !== '') {
+        if (!preg_match('/^<p\b[^>]*>(.*)<\/p>$/is', $html, $m)) {
+            break;
+        }
+
+        $inner = $m[1];
+        if (preg_match('/^\s*<p\b/i', $inner)) {
+            $html = trim($inner);
+            continue;
+        }
+
+        return $inner;
+    }
+
+    return $html;
+}
+
+/**
+ * Normalize paragraph attrs to match the current person_details template.
+ * Does not alter placeholders or entered content — only structural attrs/classes.
+ *
+ * @param array $attrs
+ * @return array
+ */
+function bss_bc_normalize_paragraph_attrs(array $attrs) {
+    $has_border      = isset($attrs['style']['border']) && is_array($attrs['style']['border']);
+    $has_placeholder = isset($attrs['placeholder']) && (string) $attrs['placeholder'] !== '';
+    $is_field        = $has_border || $has_placeholder;
+
+    if ($is_field) {
+        $attrs['className'] = 'editor-only-border';
+        return $attrs;
+    }
+
+    $attrs['className'] = 'editor-only';
+    if (isset($attrs['style']['typography']['textAlign'])) {
+        unset($attrs['style']['typography']['textAlign']);
+        if ($attrs['style']['typography'] === []) {
+            unset($attrs['style']['typography']);
+        }
+    }
+
+    return $attrs;
+}
+
+/**
+ * Build core/paragraph save HTML for repaired attrs + preserved inner value.
+ *
+ * @param array  $attrs
+ * @param string $value Raw inner HTML/text (already entity-encoded as stored).
+ * @return string
+ */
+function bss_bc_paragraph_save_html(array $attrs, $value) {
+    $value           = is_string($value) ? $value : '';
+    $has_border      = isset($attrs['style']['border']) && is_array($attrs['style']['border']);
+    $has_placeholder = isset($attrs['placeholder']) && (string) $attrs['placeholder'] !== '';
+    $is_field        = $has_border || $has_placeholder;
+
+    if ($is_field) {
+        if ($value === '' && $has_border) {
+            // Match hand-authored empty field markup used by the Website injector.
+            return '<p class="editor-only-border"></p>';
+        }
+
+        $classes = ['editor-only-border'];
+        $styles  = [];
+        if ($has_border) {
+            $classes[] = 'has-border-color';
+            $border    = $attrs['style']['border'];
+            if (!empty($border['color'])) {
+                $styles[] = 'border-color:' . $border['color'];
+            }
+            if (!empty($border['style'])) {
+                $styles[] = 'border-style:' . $border['style'];
+            }
+            if (!empty($border['width'])) {
+                $styles[] = 'border-width:' . $border['width'];
+            }
+        }
+
+        $html = '<p class="' . esc_attr(implode(' ', $classes)) . '"';
+        if ($styles) {
+            $html .= ' style="' . esc_attr(implode(';', $styles)) . '"';
+        }
+        $html .= '>' . $value . '</p>';
+
+        return $html;
+    }
+
+    $classes = [];
+    if (!empty($attrs['align'])) {
+        $classes[] = 'has-text-align-' . sanitize_html_class((string) $attrs['align']);
+    }
+    $classes[] = 'editor-only';
+
+    $styles = [];
+    if (!empty($attrs['style']['color']['text'])) {
+        $classes[] = 'has-text-color';
+        $styles[]  = 'color:' . $attrs['style']['color']['text'];
+    }
+    if (!empty($attrs['style']['typography']['fontSize'])) {
+        $styles[] = 'font-size:' . $attrs['style']['typography']['fontSize'];
+    }
+    if (!empty($attrs['style']['typography']['fontWeight'])) {
+        $styles[] = 'font-weight:' . $attrs['style']['typography']['fontWeight'];
+    }
+
+    $html = '<p class="' . esc_attr(implode(' ', $classes)) . '"';
+    if ($styles) {
+        $html .= ' style="' . esc_attr(implode(';', $styles)) . '"';
+    }
+    $html .= '>' . $value . '</p>';
+
+    return $html;
+}
+
+/**
+ * Repair nested <p> markup inside core/paragraph blocks (preserves entered values).
+ *
+ * @param string $content
+ * @return string
+ */
+function bss_bc_repair_nested_paragraph_blocks($content) {
+    if (!is_string($content) || $content === '') {
+        return $content;
+    }
+
+    if (!preg_match('/<p\b[^>]*>\s*<p\b/i', $content)) {
+        return $content;
+    }
+
+    if (!function_exists('parse_blocks') || !function_exists('serialize_blocks')) {
+        return $content;
+    }
+
+    $changed = false;
+    $blocks  = bss_bc_repair_nested_paragraph_in_blocks(parse_blocks($content), $changed);
+    if (!$changed) {
+        return $content;
+    }
+
+    $serialized = serialize_blocks($blocks);
+    return is_string($serialized) ? $serialized : $content;
+}
+
+/**
+ * @param array $blocks
+ * @param bool  $changed
+ * @return array
+ */
+function bss_bc_repair_nested_paragraph_in_blocks(array $blocks, &$changed) {
+    foreach ($blocks as &$block) {
+        if (!empty($block['innerBlocks']) && is_array($block['innerBlocks'])) {
+            $block['innerBlocks'] = bss_bc_repair_nested_paragraph_in_blocks($block['innerBlocks'], $changed);
+        }
+
+        if (($block['blockName'] ?? '') !== 'core/paragraph') {
+            continue;
+        }
+
+        $html = isset($block['innerHTML']) ? (string) $block['innerHTML'] : '';
+        if (!preg_match('/<p\b[^>]*>\s*<p\b/i', $html)) {
+            continue;
+        }
+
+        $attrs = (isset($block['attrs']) && is_array($block['attrs'])) ? $block['attrs'] : [];
+        $value = bss_bc_unwrap_nested_paragraph_value($html);
+        $attrs = bss_bc_normalize_paragraph_attrs($attrs);
+        $new   = bss_bc_paragraph_save_html($attrs, $value);
+
+        $block['attrs']        = $attrs;
+        $block['innerHTML']    = $new;
+        $block['innerContent'] = [$new];
+        $changed               = true;
+    }
+    unset($block);
+
+    return $blocks;
+}
+
+/**
+ * All person_details content repairs safe to run on edit (values preserved).
+ *
+ * @param string $content
+ * @return string
+ */
+function bss_bc_repair_person_details_content($content) {
+    if (!is_string($content) || $content === '') {
+        return $content;
+    }
+
+    $content = bss_bc_repair_empty_profile_image_blocks($content);
+    $content = bss_bc_repair_nested_paragraph_blocks($content);
+
+    return $content;
+}
+
+add_filter('content_edit_pre', 'bss_bc_repair_person_details_on_edit', 10, 2);
+function bss_bc_repair_person_details_on_edit($content, $post_id) {
     $post = get_post($post_id);
     if (!($post instanceof WP_Post) || $post->post_type !== 'person_details') {
         return $content;
     }
-    return bss_bc_repair_empty_profile_image_blocks($content);
+    return bss_bc_repair_person_details_content($content);
 }
 
 add_action('wp_insert_post', 'bss_bc_seed_person_details_auto_draft', 20, 3);
@@ -441,14 +686,14 @@ function bss_bc_seed_person_details_auto_draft($post_id, $post, $update) {
     $content = trim((string) $post->post_content);
     $seed    = bss_bc_person_details_default_block_content();
 
-    if ($content !== '' && $content === bss_bc_repair_empty_profile_image_blocks($content)) {
+    if ($content !== '' && $content === bss_bc_repair_person_details_content($content)) {
         return;
     }
 
     if ($content === '') {
         $new_content = $seed;
     } else {
-        $new_content = bss_bc_repair_empty_profile_image_blocks($content);
+        $new_content = bss_bc_repair_person_details_content($content);
         if ($new_content === $content) {
             return;
         }
